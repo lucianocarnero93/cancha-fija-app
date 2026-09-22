@@ -1,9 +1,9 @@
-import { MapPin } from "lucide-react";
 import { KIND_LABEL, formatDay, formatTime } from "@/lib/fija/format";
 import { MODALITY_LABEL } from "@/lib/fija/formations";
 import type { ClubEvent, Rsvp } from "@/lib/fija/types";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { PlaceLink } from "./place-link";
 
 export function EventCard({
   event,
@@ -46,13 +46,10 @@ export function EventCard({
               </span>
             ) : null}
           </h2>
-          <p className="mt-1 flex items-start gap-1 text-sm text-muted">
-            <MapPin className="mt-0.5 size-3.5 shrink-0" />
-            <span>{event.place}</span>
-          </p>
         </div>
       </div>
-      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-bg">
+      <PlaceLink event={event} />
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-bg">
         <div className="flex h-full">
           <span className="bg-accent" style={{ width: `${(voy / total) * 100}%` }} />
           <span className="bg-warning" style={{ width: `${(pending / total) * 100}%` }} />

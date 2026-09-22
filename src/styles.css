@@ -2,40 +2,40 @@
 @import "tw-animate-css";
 
 @theme {
-  --color-void: #e4d9c8;
-  --color-bg: #f3eee6;
-  --color-surface: #fbf8f2;
-  --color-surface-2: #efe6d8;
-  --color-fg: #1c1814;
-  --color-muted: #6e6558;
-  --color-subtle: #9a9084;
-  --color-accent: #1f6b45;
-  --color-accent-fg: #f6fff8;
-  --color-border: #e2d8c8;
-  --color-wood: #8b5e3c;
-  --color-wood-deep: #6a4529;
-  --color-metal: #ece8e0;
-  --color-board: #2a3328;
+  --color-void: #061109;
+  --color-bg: #0b1c12;
+  --color-surface: #132a1c;
+  --color-surface-2: #1a3826;
+  --color-fg: #eef6ef;
+  --color-muted: #9bb5a4;
+  --color-subtle: #6e8a78;
+  --color-accent: #b8f25a;
+  --color-accent-fg: #0c1a10;
+  --color-border: #234833;
+  --color-wood: #1a2e20;
+  --color-wood-deep: #0e1c13;
+  --color-metal: #1e3326;
+  --color-board: #0d1a12;
   --color-chalk: #e8ead8;
   --color-pitch: #147a3a;
   --color-pitch-top: #1a9a4a;
   --color-pitch-deep: #0c5a2a;
-  --color-line: #f4f7ef;
-  --color-danger: #c4453c;
-  --color-danger-fg: #fff8f6;
-  --color-warning: #b45309;
-  --color-success: #1f6b45;
-  --color-card: #fbf8f2;
-  --color-background: #f3eee6;
-  --color-foreground: #1c1814;
-  --color-primary: #1f6b45;
-  --color-primary-foreground: #f6fff8;
-  --color-secondary: #efe6d8;
-  --color-secondary-foreground: #1c1814;
-  --color-muted-foreground: #6e6558;
-  --color-destructive: #c4453c;
-  --color-input: #e2d8c8;
-  --color-ring: #1f6b45;
+  --color-line: #e8f3ea;
+  --color-danger: #f07167;
+  --color-danger-fg: #2a0c0a;
+  --color-warning: #f0b429;
+  --color-success: #b8f25a;
+  --color-card: #132a1c;
+  --color-background: #0b1c12;
+  --color-foreground: #eef6ef;
+  --color-primary: #b8f25a;
+  --color-primary-foreground: #0c1a10;
+  --color-secondary: #1a3826;
+  --color-secondary-foreground: #eef6ef;
+  --color-muted-foreground: #9bb5a4;
+  --color-destructive: #f07167;
+  --color-input: #234833;
+  --color-ring: #b8f25a;
   --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Barlow Condensed", "Figtree", ui-sans-serif, system-ui, sans-serif;
   --radius-xs: 4px;
@@ -45,7 +45,7 @@
   --radius-xl: 28px;
   --radius: 14px;
   --max-width-phone: 430px;
-  --shadow-card: 0 1px 0 rgba(28, 24, 20, 0.04), 0 10px 28px rgba(28, 24, 20, 0.07);
+  --shadow-card: 0 1px 0 rgba(184, 242, 90, 0.06), 0 12px 28px rgba(0, 0, 0, 0.28);
   --shadow-pitch: inset 0 0 40px rgba(0, 0, 0, 0.22);
 }
 
@@ -70,6 +70,7 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--color-void);
     color: var(--color-fg);
+    color-scheme: dark;
   }
 
   body {
@@ -110,27 +111,38 @@
 }
 
 @layer components {
-  .locker-shell {
+  .pitch-shell {
     background-color: var(--color-bg);
     background-image:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 42%),
+      radial-gradient(
+        circle at 50% 38%,
+        transparent 86px,
+        color-mix(in oklab, var(--color-line) 10%, transparent) 87px,
+        color-mix(in oklab, var(--color-line) 10%, transparent) 88px,
+        transparent 89px
+      ),
+      linear-gradient(
+        90deg,
+        transparent calc(50% - 0.5px),
+        color-mix(in oklab, var(--color-line) 10%, transparent) calc(50% - 0.5px),
+        color-mix(in oklab, var(--color-line) 10%, transparent) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)
+      ),
       repeating-linear-gradient(
         90deg,
-        transparent 0 27px,
-        color-mix(in oklab, var(--color-wood) 16%, transparent) 27px 28px
+        color-mix(in oklab, var(--color-pitch-deep) 42%, transparent) 0 22px,
+        color-mix(in oklab, var(--color-pitch-top) 16%, transparent) 22px 44px
       );
   }
 
-  .wood-strip {
-    height: 6px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 55%),
-      repeating-linear-gradient(
-        90deg,
-        var(--color-wood) 0 11px,
-        var(--color-wood-deep) 11px 13px,
-        #946544 13px 22px
-      );
+  .grass-strip {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-pitch-deep) 0 18px,
+      var(--color-pitch) 18px 28px,
+      var(--color-pitch-top) 28px 40px
+    );
   }
 
   .metal-card {

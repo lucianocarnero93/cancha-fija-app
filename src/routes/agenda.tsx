@@ -34,7 +34,7 @@ function AgendaPage() {
                     {event.kind === "partido" ? (
                       <Link
                         to="/stats"
-                        search={{ partido: event.id }}
+                        search={{ partido: event.id, torneo: "general" }}
                         className="inline-flex h-11 items-center rounded-md px-3 text-sm font-semibold text-accent"
                       >
                         {sheet ? "Editar planilla" : "Cargar planilla"}

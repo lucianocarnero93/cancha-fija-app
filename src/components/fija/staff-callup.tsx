@@ -73,7 +73,7 @@ export function StaffCallup({ event }: { event: ClubEvent }) {
               <li key={player.id} className="flex items-center justify-between gap-2 py-2">
                 <span className="truncate text-sm font-medium">{player.nick}</span>
                 <a
-                  href={whatsAppClaimUrl(player, event, club)}
+                  href={club ? whatsAppClaimUrl(player, event, club) : undefined}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex h-11 items-center gap-1 rounded-md bg-accent px-3 text-xs font-semibold text-accent-fg"

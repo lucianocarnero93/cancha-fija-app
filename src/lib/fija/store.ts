@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { uid } from "./format";
 import { notifyApp, notifyReminder } from "./notify";
-import { createSeed } from "./seed";
+import { createSeed, emptyClubState, GUEST_ID, openClubs } from "./seed";
+import { sanitizeCode, sanitizeName, sanitizeText } from "./sanitize";
 import { clampHours, hoursSince } from "./share";
 import { clampStat, emptyStat } from "./stats";
 import { safeStorage } from "./storage";
@@ -10,9 +11,12 @@ import type {
   AlertLog,
   ChatMessage,
   CharlaPost,
+  Club,
+  ClubBundle,
   ClubEvent,
   Convocatoria,
   EventKind,
+  GpsConsent,
   InboxItem,
   Invite,
   MatchSheet,
@@ -22,6 +26,7 @@ import type {
   ReminderPolicy,
   Role,
   RsvpStatus,
+  Tournament,
 } from "./types";
 
 type State = ReturnType<typeof createSeed> & {
@@ -37,6 +42,9 @@ type State = ReturnType<typeof createSeed> & {
     kind: EventKind;
     title: string;
     place: string;
+    mapsQuery?: string;
+    lat?: number | null;
+    lng?: number | null;
     startsAt: string;
     modality: Modality;
   }) => void;
@@ -58,6 +66,13 @@ type State = ReturnType<typeof createSeed> & {
   invitePlayer: (input: { name: string; nick: string; number: number | null }) => string | null;
   assignRole: (memberId: string, role: Role) => void;
   saveMatchSheet: (sheet: Omit<MatchSheet, "recordedAt">) => void;
+  createTournament: (name: string) => void;
+  finishTournament: (id: string) => void;
+  setGpsConsent: (value: GpsConsent) => void;
+  leaveClub: () => void;
+  joinClub: (code: string) => boolean;
+  createClub: (name: string) => void;
+  setProfile: (profile: { name: string; nick: string }) => void;
   resetDemo: () => void;
 };
 
@@ -98,13 +113,20 @@ export const useFija = create<State>()(
         const event: ClubEvent = {
           id: uid("ev"),
           kind: input.kind,
-          title: input.title.trim(),
-          place: input.place.trim(),
+          title: sanitizeName(input.title) || "Partido",
+          place: sanitizeName(input.place) || "A confirmar",
+          mapsQuery: (input.mapsQuery ?? input.place).trim(),
+          lat: input.lat ?? null,
+          lng: input.lng ?? null,
           startsAt: input.startsAt,
           modality: input.modality,
           lineup: {},
           tactics: "",
           lineupPublishedAt: null,
+          tournamentId:
+            input.kind === "partido"
+              ? (get().tournaments.find((t) => t.status === "active")?.id ?? null)
+              : null,
         };
         const players = get().members.filter((m) => m.role === "jugador");
         const extra = players.map((p) => ({
@@ -179,7 +201,7 @@ export const useFija = create<State>()(
         });
       },
       sendChat: (text) => {
-        const body = text.trim();
+        const body = sanitizeText(text, 400);
         if (!body) return;
         const msg: ChatMessage = {
           id: uid("msg"),
@@ -192,7 +214,7 @@ export const useFija = create<State>()(
       },
       postCharla: (text) => {
         if (!isStaffId(get())) return;
-        const body = text.trim();
+        const body = sanitizeText(text, 400);
         if (!body) return;
         const post: CharlaPost = {
           id: uid("ch"),
@@ -357,14 +379,16 @@ export const useFija = create<State>()(
       },
       setClubName: (name) => {
         if (!isCreatorId(get())) return;
-        const trimmed = name.trim();
+        const trimmed = sanitizeName(name);
         if (!trimmed) return;
-        set({ club: { ...get().club, name: trimmed } });
+        const club = get().club;
+        if (!club) return;
+        set({ club: { ...club, name: trimmed } });
       },
       invitePlayer: (input) => {
         if (!isCreatorId(get())) return null;
-        const name = input.name.trim();
-        const nick = input.nick.trim() || name.split(" ")[0] || "Jugador";
+        const name = sanitizeName(input.name);
+        const nick = sanitizeName(input.nick) || name.split(" ")[0] || "Jugador";
         if (!name) return null;
         const id = uid("j");
         const code = uid("FJ").replace("FJ-", "").slice(0, 4).toUpperCase();
@@ -416,20 +440,139 @@ export const useFija = create<State>()(
         }));
         const sheet: MatchSheet = {
           eventId: input.eventId,
-          opponent: input.opponent.trim(),
+          opponent: sanitizeName(input.opponent),
           goalsFor: clampStat(input.goalsFor),
           goalsAgainst: clampStat(input.goalsAgainst),
-          notes: input.notes.trim(),
+          notes: sanitizeText(input.notes, 400),
           recordedAt: new Date().toISOString(),
           players,
         };
         const rest = get().matchSheets.filter((s) => s.eventId !== sheet.eventId);
         set({ matchSheets: [...rest, sheet] });
       },
+      createTournament: (name) => {
+        if (!isStaffId(get())) return;
+        if (get().tournaments.some((t) => t.status === "active")) return;
+        const label = sanitizeName(name);
+        if (!label) return;
+        const tournament: Tournament = {
+          id: uid("tor"),
+          name: label,
+          startedAt: new Date().toISOString(),
+          endedAt: null,
+          status: "active",
+        };
+        set({ tournaments: [...get().tournaments, tournament] });
+      },
+      finishTournament: (id) => {
+        if (!isStaffId(get())) return;
+        set({
+          tournaments: get().tournaments.map((t) =>
+            t.id === id && t.status === "active"
+              ? { ...t, status: "finished", endedAt: new Date().toISOString() }
+              : t,
+          ),
+        });
+      },
+      setGpsConsent: (value) => set({ gpsConsent: value }),
+      setProfile: (profile) =>
+        set({
+          profile: {
+            name: sanitizeName(profile.name) || "Jugador",
+            nick: sanitizeName(profile.nick) || "Jugador",
+          },
+        }),
+      leaveClub: () => {
+        const state = get();
+        if (!state.club) return;
+        const remaining = state.members.filter((m) => m.id !== state.activeId);
+        let club: Club = state.club;
+        let members = remaining;
+        if (club.createdBy === state.activeId && remaining[0]) {
+          const heir =
+            remaining.find((m) => m.role === "dt") ??
+            remaining.find((m) => m.role === "ayudante") ??
+            remaining[0];
+          club = { ...club, createdBy: heir.id };
+          members = remaining.map((m) =>
+            m.id === heir.id && m.role === "jugador" ? { ...m, role: "dt" } : m,
+          );
+        }
+        const parked = toBundle({ ...state, club, members });
+        const archived = upsertBundle(state.archivedClubs, parked);
+        set({
+          ...emptyClubState(),
+          archivedClubs: archived,
+          profile: state.profile,
+          gpsConsent: state.gpsConsent,
+          activeId: GUEST_ID,
+          hydrated: true,
+        });
+      },
+      joinClub: (code) => {
+        const state = get();
+        if (state.club) return false;
+        const key = sanitizeCode(code);
+        if (!key) return false;
+        const found =
+          state.archivedClubs.find((b) => b.club.inviteCode.toUpperCase() === key) ??
+          openClubs().find((b) => b.club.inviteCode.toUpperCase() === key);
+        if (!found) return false;
+        const me: Member = {
+          id: GUEST_ID,
+          name: state.profile.name || "Jugador",
+          nick: state.profile.nick || "Jugador",
+          role: "jugador",
+          number: null,
+        };
+        const members = found.members.some((m) => m.id === me.id)
+          ? found.members
+          : [...found.members, me];
+        set({
+          ...found,
+          members,
+          archivedClubs: state.archivedClubs.filter((b) => b.club.id !== found.club.id),
+          profile: state.profile,
+          gpsConsent: state.gpsConsent,
+          activeId: me.id,
+          reminder: null,
+          hydrated: true,
+        });
+        return true;
+      },
+      createClub: (name) => {
+        const state = get();
+        if (state.club) return;
+        const label = sanitizeName(name);
+        if (!label) return;
+        const me: Member = {
+          id: GUEST_ID,
+          name: state.profile.name || "DT",
+          nick: state.profile.nick || "DT",
+          role: "dt",
+          number: null,
+        };
+        const club: Club = {
+          id: uid("club"),
+          name: label,
+          createdBy: me.id,
+          inviteCode: uid("EQ").replace("EQ-", "").slice(0, 5).toUpperCase(),
+        };
+        set({
+          ...emptyClubState(),
+          club,
+          members: [me],
+          archivedClubs: state.archivedClubs,
+          profile: state.profile,
+          gpsConsent: state.gpsConsent,
+          activeId: me.id,
+          hydrated: true,
+        });
+      },
       resetDemo: () => set({ ...createSeed(), hydrated: true }),
     }),
     {
-      name: "mi-vestuario-v2",
+      name: "mi-vestuario-v4",
       skipHydration: true,
       storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({
@@ -445,6 +588,10 @@ export const useFija = create<State>()(
         inbox: s.inbox,
         alertLog: s.alertLog,
         reminderPolicy: s.reminderPolicy,
+        tournaments: s.tournaments,
+        archivedClubs: s.archivedClubs,
+        profile: s.profile,
+        gpsConsent: s.gpsConsent,
         activeId: s.activeId,
         reminder: s.reminder,
       }),
@@ -453,12 +600,16 @@ export const useFija = create<State>()(
         if (!Array.isArray(state.matchSheets)) {
           state.matchSheets = createSeed().matchSheets;
         }
-        if (!state.club) {
-          const fresh = createSeed();
-          state.club = fresh.club;
-          state.members = fresh.members;
-          state.events = fresh.events;
+        if (!Array.isArray(state.tournaments)) {
+          state.tournaments = createSeed().tournaments;
         }
+        if (!Array.isArray(state.archivedClubs)) {
+          state.archivedClubs = createSeed().archivedClubs;
+        }
+        if (!state.profile) {
+          state.profile = createSeed().profile;
+        }
+        if (!state.gpsConsent) state.gpsConsent = "unset";
         state.setHydrated();
       },
     },
@@ -470,8 +621,45 @@ function isStaffId(state: { members: Member[]; activeId: string }): boolean {
   return me?.role === "dt" || me?.role === "ayudante";
 }
 
-function isCreatorId(state: { club: { createdBy: string }; activeId: string }): boolean {
-  return state.club.createdBy === state.activeId;
+function isCreatorId(state: { club: Club | null; activeId: string }): boolean {
+  return Boolean(state.club && state.club.createdBy === state.activeId);
+}
+
+function toBundle(state: {
+  club: Club;
+  members: Member[];
+  events: ClubEvent[];
+  rsvps: State["rsvps"];
+  messages: ChatMessage[];
+  charla: CharlaPost[];
+  matchSheets: MatchSheet[];
+  invites: Invite[];
+  convocatorias: Convocatoria[];
+  inbox: InboxItem[];
+  alertLog: AlertLog[];
+  reminderPolicy: ReminderPolicy;
+  tournaments: Tournament[];
+}): ClubBundle {
+  return {
+    club: state.club,
+    members: state.members,
+    events: state.events,
+    rsvps: state.rsvps,
+    messages: state.messages,
+    charla: state.charla,
+    matchSheets: state.matchSheets,
+    invites: state.invites,
+    convocatorias: state.convocatorias,
+    inbox: state.inbox,
+    alertLog: state.alertLog,
+    reminderPolicy: state.reminderPolicy,
+    tournaments: state.tournaments,
+  };
+}
+
+function upsertBundle(list: ClubBundle[], next: ClubBundle): ClubBundle[] {
+  const rest = list.filter((b) => b.club.id !== next.club.id && b.club.inviteCode !== next.club.inviteCode);
+  return [...rest, next];
 }
 
 function upsertRsvp(
@@ -494,19 +682,28 @@ function parseSnapshot(raw: unknown): Partial<ReturnType<typeof createSeed>> | n
   if (!isRecord(data)) return null;
   if (!Array.isArray(data.members) || !Array.isArray(data.events)) return null;
   const seedData = createSeed();
-  const club = isRecord(data.club)
-    ? {
-        id: typeof data.club.id === "string" ? data.club.id : seedData.club.id,
-        name: typeof data.club.name === "string" ? data.club.name : seedData.club.name,
-        createdBy:
-          typeof data.club.createdBy === "string" ? data.club.createdBy : seedData.club.createdBy,
-        inviteCode:
-          typeof data.club.inviteCode === "string" ? data.club.inviteCode : seedData.club.inviteCode,
-      }
-    : seedData.club;
+  const club =
+    data.club === null
+      ? null
+      : isRecord(data.club)
+        ? {
+            id: typeof data.club.id === "string" ? data.club.id : seedData.club!.id,
+            name: typeof data.club.name === "string" ? data.club.name : seedData.club!.name,
+            createdBy:
+              typeof data.club.createdBy === "string" ? data.club.createdBy : seedData.club!.createdBy,
+            inviteCode:
+              typeof data.club.inviteCode === "string"
+                ? data.club.inviteCode
+                : seedData.club!.inviteCode,
+          }
+        : seedData.club;
   const events = (data.events as ClubEvent[]).map((event) => ({
     ...event,
+    mapsQuery: event.mapsQuery ?? event.place ?? "",
+    lat: typeof event.lat === "number" ? event.lat : null,
+    lng: typeof event.lng === "number" ? event.lng : null,
     lineupPublishedAt: event.lineupPublishedAt ?? null,
+    tournamentId: event.tournamentId ?? null,
   }));
   const policy = isRecord(data.reminderPolicy)
     ? {
@@ -539,6 +736,23 @@ function parseSnapshot(raw: unknown): Partial<ReturnType<typeof createSeed>> | n
       ? (data.alertLog as ReturnType<typeof createSeed>["alertLog"])
       : [],
     reminderPolicy: policy,
+    tournaments: Array.isArray(data.tournaments)
+      ? (data.tournaments as Tournament[])
+      : seedData.tournaments,
+    archivedClubs: Array.isArray(data.archivedClubs)
+      ? (data.archivedClubs as ClubBundle[])
+      : seedData.archivedClubs,
+    profile:
+      isRecord(data.profile) && typeof data.profile.name === "string"
+        ? {
+            name: String(data.profile.name),
+            nick: typeof data.profile.nick === "string" ? data.profile.nick : String(data.profile.name),
+          }
+        : seedData.profile,
+    gpsConsent:
+      data.gpsConsent === "granted" || data.gpsConsent === "denied" || data.gpsConsent === "unset"
+        ? data.gpsConsent
+        : seedData.gpsConsent,
     activeId: typeof data.activeId === "string" ? data.activeId : "dt",
     reminder: (data.reminder as ReturnType<typeof createSeed>["reminder"]) ?? null,
   };
@@ -572,18 +786,53 @@ export function inboxVisible(
   return true;
 }
 
+export const GUEST: Member = {
+  id: GUEST_ID,
+  name: "Vos",
+  nick: "Vos",
+  role: "jugador",
+  number: null,
+};
+
 export function useMe(): Member {
-  return useFija((s) => s.members.find((m) => m.id === s.activeId) ?? s.members[0]!);
+  return useFija((s) => {
+    const found = s.members.find((m) => m.id === s.activeId);
+    if (found) return found;
+    if (s.members[0]) return s.members[0];
+    return {
+      ...GUEST,
+      name: s.profile.name || GUEST.name,
+      nick: s.profile.nick || GUEST.nick,
+    };
+  });
 }
 
 export function useIsStaff(): boolean {
   const me = useMe();
+  const club = useFija((s) => s.club);
+  if (!club) return false;
   return me.role === "dt" || me.role === "ayudante";
 }
 
 export function useIsCreator(): boolean {
   const me = useMe();
-  return useFija((s) => s.club.createdBy === me.id);
+  return useFija((s) => Boolean(s.club && s.club.createdBy === me.id));
+}
+
+export function activeTournament(list: Tournament[]): Tournament | undefined {
+  return list.find((t) => t.status === "active");
+}
+
+export function sheetsForScope(
+  sheets: MatchSheet[],
+  events: ClubEvent[],
+  tournamentId: string | "general",
+): MatchSheet[] {
+  if (tournamentId === "general") return sheets;
+  const ids = new Set(
+    events.filter((e) => e.tournamentId === tournamentId).map((e) => e.id),
+  );
+  return sheets.filter((s) => ids.has(s.eventId));
 }
 
 export function nextEvent(events: ClubEvent[]): ClubEvent | undefined {

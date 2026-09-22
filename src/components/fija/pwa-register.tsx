@@ -7,7 +7,7 @@ type LaunchParams = {
   targetURL?: string;
   files?: readonly LaunchFile[];
 };
-type AppPath = "/" | "/agenda" | "/cancha" | "/chat" | "/equipo" | "/stats";
+type AppPath = "/" | "/agenda" | "/cancha" | "/chat" | "/equipo" | "/stats" | "/seguridad" | "/privacidad" | "/tiendas";
 
 declare global {
   interface Window {
@@ -33,6 +33,9 @@ const PROTOCOL_MAP: Record<string, AppPath> = {
   equipo: "/equipo",
   stats: "/stats",
   estadisticas: "/stats",
+  seguridad: "/seguridad",
+  permisos: "/seguridad",
+  gps: "/seguridad",
 };
 
 function isAppPath(path: string): path is AppPath {
@@ -42,7 +45,10 @@ function isAppPath(path: string): path is AppPath {
     path === "/cancha" ||
     path === "/chat" ||
     path === "/equipo" ||
-    path === "/stats"
+    path === "/stats" ||
+    path === "/seguridad" ||
+    path === "/privacidad" ||
+    path === "/tiendas"
   );
 }
 

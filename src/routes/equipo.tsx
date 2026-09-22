@@ -45,7 +45,7 @@ function EquipoPage() {
       <div className="flex items-center gap-3">
         <LogoMark className="size-14" />
         <div>
-          <h1 className="text-3xl font-semibold">{club.name}</h1>
+          <h1 className="text-3xl font-semibold">{club?.name ?? "Equipo"}</h1>
           <p className="text-sm text-muted">Cuerpo técnico, plantel y estadísticas.</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ function EquipoPage() {
       {staff || creator ? (
         <div className="mt-4">
           <InviteShareButton />
-          <p className="mt-1 text-center text-xs text-muted">Código de vestuario: {club.inviteCode}</p>
+          <p className="mt-1 text-center text-xs text-muted">Código de vestuario: {club?.inviteCode}</p>
         </div>
       ) : null}
 
@@ -91,7 +91,7 @@ function EquipoPage() {
         </RankBlock>
         <Link
           to="/stats"
-          search={{ partido: undefined }}
+          search={{ partido: undefined, torneo: "general" }}
           className="flex h-12 items-center justify-center rounded-xl bg-surface text-sm font-semibold text-accent shadow-card"
         >
           Ver historial y planillas
@@ -145,6 +145,7 @@ function EquipoPage() {
         </div>
       ) : null}
       {staff ? <CederMando /> : null}
+      <LeaveTeam />
     </main>
   );
 }
@@ -153,7 +154,7 @@ function CreateTeamDialog() {
   const club = useFija((s) => s.club);
   const setClubName = useFija((s) => s.setClubName);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(club.name);
+  const [name, setName] = useState(club?.name ?? "");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -364,5 +365,33 @@ function CederMando() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function LeaveTeam() {
+  const club = useFija((s) => s.club);
+  const leaveClub = useFija((s) => s.leaveClub);
+  const [open, setOpen] = useState(false);
+  if (!club) return null;
+  return (
+    <div className="mt-8">
+      {open ? (
+        <div className="rounded-xl bg-surface p-4 shadow-card">
+          <p className="text-sm">¿Salís de {club.name}? Después podés entrar a otro con un código.</p>
+          <div className="mt-3 grid gap-2">
+            <Button variant="danger" className="h-12" onClick={() => leaveClub()}>
+              Salir del equipo
+            </Button>
+            <Button variant="ghost" className="h-12" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button variant="outline" className="h-14 w-full text-base" onClick={() => setOpen(true)}>
+          Salir del equipo
+        </Button>
+      )}
+    </div>
   );
 }

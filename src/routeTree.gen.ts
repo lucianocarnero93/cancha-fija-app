@@ -14,7 +14,10 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as CanchaRouteImport } from './routes/cancha'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as EquipoRouteImport } from './routes/equipo'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
+import { Route as SeguridadRouteImport } from './routes/seguridad'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as TiendasRouteImport } from './routes/tiendas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,9 +44,24 @@ const EquipoRoute = EquipoRouteImport.update({
   path: '/equipo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeguridadRoute = SeguridadRouteImport.update({
+  id: '/seguridad',
+  path: '/seguridad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TiendasRoute = TiendasRouteImport.update({
+  id: '/tiendas',
+  path: '/tiendas',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -53,7 +71,10 @@ export interface FileRoutesByFullPath {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
+  '/tiendas': typeof TiendasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +82,10 @@ export interface FileRoutesByTo {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
+  '/tiendas': typeof TiendasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,14 +94,45 @@ export interface FileRoutesById {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/privacidad': typeof PrivacidadRoute
+  '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
+  '/tiendas': typeof TiendasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
+  fullPaths:
+    | '/'
+    | '/agenda'
+    | '/cancha'
+    | '/chat'
+    | '/equipo'
+    | '/privacidad'
+    | '/seguridad'
+    | '/stats'
+    | '/tiendas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
-  id: '__root__' | '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
+  to:
+    | '/'
+    | '/agenda'
+    | '/cancha'
+    | '/chat'
+    | '/equipo'
+    | '/privacidad'
+    | '/seguridad'
+    | '/stats'
+    | '/tiendas'
+  id:
+    | '__root__'
+    | '/'
+    | '/agenda'
+    | '/cancha'
+    | '/chat'
+    | '/equipo'
+    | '/privacidad'
+    | '/seguridad'
+    | '/stats'
+    | '/tiendas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,7 +141,10 @@ export interface RootRouteChildren {
   CanchaRoute: typeof CanchaRoute
   ChatRoute: typeof ChatRoute
   EquipoRoute: typeof EquipoRoute
+  PrivacidadRoute: typeof PrivacidadRoute
+  SeguridadRoute: typeof SeguridadRoute
   StatsRoute: typeof StatsRoute
+  TiendasRoute: typeof TiendasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -126,11 +184,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seguridad': {
+      id: '/seguridad'
+      path: '/seguridad'
+      fullPath: '/seguridad'
+      preLoaderRoute: typeof SeguridadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tiendas': {
+      id: '/tiendas'
+      path: '/tiendas'
+      fullPath: '/tiendas'
+      preLoaderRoute: typeof TiendasRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -142,7 +221,10 @@ const rootRouteChildren: RootRouteChildren = {
   CanchaRoute: CanchaRoute,
   ChatRoute: ChatRoute,
   EquipoRoute: EquipoRoute,
+  PrivacidadRoute: PrivacidadRoute,
+  SeguridadRoute: SeguridadRoute,
   StatsRoute: StatsRoute,
+  TiendasRoute: TiendasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

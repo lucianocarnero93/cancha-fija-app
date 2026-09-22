@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { fromDatetimeLocal, KIND_LABEL, toDatetimeLocal } from "@/lib/fija/format";
 import { MODALITY_SHORT, MODALITIES } from "@/lib/fija/formations";
+import { parseMapsInput } from "@/lib/fija/maps";
 import { useFija } from "@/lib/fija/store";
 import type { ClubEvent, EventKind, Modality } from "@/lib/fija/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GpsLocateButton } from "./gps-button";
 import { Segmented } from "./segmented";
 
 export function CreateEventButton() {
@@ -21,13 +23,18 @@ export function CreateEventButton() {
         modality: "f8",
         title: "",
         place: "",
+        mapsQuery: "",
         when: "2026-09-27T20:30",
       }}
       onSubmit={(data) => {
+        const maps = parseMapsInput(data.mapsQuery);
         createEvent({
           kind: data.kind,
           title: data.title.trim() || defaultTitle(data.kind),
           place: data.place.trim() || "A confirmar",
+          mapsQuery: maps.mapsQuery || data.place.trim(),
+          lat: maps.lat,
+          lng: maps.lng,
           startsAt: fromDatetimeLocal(data.when),
           modality: data.modality,
         });
@@ -53,13 +60,18 @@ export function EditEventButton({ event }: { event: ClubEvent }) {
         modality: event.modality,
         title: event.title,
         place: event.place,
+        mapsQuery: event.mapsQuery || "",
         when: toDatetimeLocal(event.startsAt),
       }}
       onSubmit={(data) => {
+        const maps = parseMapsInput(data.mapsQuery);
         updateEvent(event.id, {
           kind: data.kind,
           title: data.title.trim() || defaultTitle(data.kind),
           place: data.place.trim() || "A confirmar",
+          mapsQuery: maps.mapsQuery || data.place.trim(),
+          lat: maps.lat,
+          lng: maps.lng,
           startsAt: fromDatetimeLocal(data.when),
           modality: data.modality,
           lineup: event.lineup,
@@ -75,6 +87,7 @@ type Draft = {
   modality: Modality;
   title: string;
   place: string;
+  mapsQuery: string;
   when: string;
 };
 
@@ -98,6 +111,7 @@ function EventDialog({
   const [modality, setModality] = useState<Modality>(initial.modality);
   const [eventTitle, setEventTitle] = useState(initial.title);
   const [place, setPlace] = useState(initial.place);
+  const [mapsQuery, setMapsQuery] = useState(initial.mapsQuery);
   const [when, setWhen] = useState(initial.when);
 
   function reset() {
@@ -105,6 +119,7 @@ function EventDialog({
     setModality(initial.modality);
     setEventTitle(initial.title);
     setPlace(initial.place);
+    setMapsQuery(initial.mapsQuery);
     setWhen(initial.when);
   }
 
@@ -155,10 +170,26 @@ function EventDialog({
               placeholder="Predio, cancha 2"
             />
           </div>
+          <div className="space-y-1.5">
+            <Label>Dirección para Mapas</Label>
+            <Input
+              value={mapsQuery}
+              onChange={(e) => setMapsQuery(e.target.value)}
+              placeholder="Calle y barrio, o un link de Maps"
+            />
+            <p className="text-xs text-muted">
+              Se abre la app de Mapas del celular. Sin mapa acá adentro.
+            </p>
+            <GpsLocateButton
+              onFix={(fix) => {
+                setMapsQuery(fix.mapsQuery);
+              }}
+            />
+          </div>
           <Button
             className="h-14 w-full text-base"
             onClick={() => {
-              onSubmit({ kind, modality, title: eventTitle, place, when });
+              onSubmit({ kind, modality, title: eventTitle, place, mapsQuery, when });
               setOpen(false);
             }}
           >

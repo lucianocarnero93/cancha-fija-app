@@ -30,7 +30,9 @@ function HomePage() {
   const event = nextEvent(events);
   const players = members.filter((m) => m.role === "jugador");
   const record = teamRecord(sheets);
-  const inviteOk = Boolean(search.invite && search.invite.toUpperCase() === club.inviteCode);
+  const inviteOk = Boolean(
+    club && search.invite && search.invite.toUpperCase() === club.inviteCode,
+  );
 
   if (!event) {
     return (
@@ -53,7 +55,7 @@ function HomePage() {
     <main className="px-4 py-5">
       {inviteOk ? (
         <div className="mb-4 rounded-xl bg-surface px-4 py-3 shadow-card">
-          <p className="text-sm font-medium">Entraste al vestuario de {club.name}.</p>
+          <p className="text-sm font-medium">Entraste al vestuario de {club?.name}.</p>
           <Button
             variant="ghost"
             className="mt-1 h-11 px-0 text-accent"
@@ -74,7 +76,7 @@ function HomePage() {
       <Link
         to="/stats"
         className="mt-4 flex items-center justify-between rounded-xl bg-surface px-4 py-3 shadow-card"
-        search={{ partido: undefined }}
+        search={{ partido: undefined, torneo: "general" }}
       >
         <span>
           <span className="block text-xs font-semibold uppercase tracking-widest text-muted">
@@ -136,7 +138,7 @@ function HomePage() {
             <ConfirmGroups players={players} eventRsvps={eventRsvps} />
             {event.kind === "partido" ? (
               <Button asChild className="mt-3 h-14 w-full text-base" variant="outline">
-                <Link to="/stats" search={{ partido: event.id }}>
+                <Link to="/stats" search={{ partido: event.id, torneo: "general" }}>
                   {sheet ? "Editar planilla" : "Cargar resultado y stats"}
                 </Link>
               </Button>

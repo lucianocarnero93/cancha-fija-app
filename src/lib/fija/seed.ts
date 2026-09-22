@@ -2,16 +2,19 @@ import type {
   AlertLog,
   AppState,
   CharlaPost,
+  ClubBundle,
   ClubEvent,
   Convocatoria,
   InboxItem,
   MatchSheet,
   Member,
   Rsvp,
+  Tournament,
 } from "./types";
 
 export const TEAM_NAME = "Los Fijos";
 export const APP_NAME = "Mi Vestuario App";
+export const GUEST_ID = "self";
 
 const MEMBERS: Member[] = [
   { id: "dt", name: "Martín Díaz", nick: "Profe", role: "dt", number: null },
@@ -44,79 +47,127 @@ const F8: Record<string, string> = {
   DC: "j1",
 };
 
+const UNION = {
+  mapsQuery: "Club Atlético Unión, Avenida López y Planes 3501, Santa Fe, Argentina",
+  lat: -31.6435,
+  lng: -60.712,
+};
+
+const PREDIO_SUR = {
+  mapsQuery: "Predio Sur, Avenida Gorriti, Santa Fe, Argentina",
+  lat: -31.6652,
+  lng: -60.7098,
+};
+
+const PREDIO_NORTE = {
+  mapsQuery: "Predio Norte, Avenida Blas Parera, Santa Fe, Argentina",
+  lat: -31.6054,
+  lng: -60.6895,
+};
+
+const TORNEOS: Tournament[] = [
+  {
+    id: "tor-apertura",
+    name: "Apertura 2026",
+    startedAt: "2026-08-01T00:00:00-03:00",
+    endedAt: "2026-09-20T23:00:00-03:00",
+    status: "finished",
+  },
+  {
+    id: "tor-clausura",
+    name: "Clausura 2026",
+    startedAt: "2026-09-21T00:00:00-03:00",
+    endedAt: null,
+    status: "active",
+  },
+];
+
 const EVENTS: ClubEvent[] = [
   {
     id: "ev-past-1",
     kind: "partido",
     title: "vs Villa del Parque",
     place: "Predio Sur, cancha 1",
+    ...PREDIO_SUR,
     startsAt: "2026-09-06T20:00:00-03:00",
     modality: "f8",
     lineup: { ...F8, DC: "j1", MD: "j7" },
     tactics: "Ya jugado. Joaco al área, Mía por derecha.",
     lineupPublishedAt: "2026-09-05T19:00:00-03:00",
+    tournamentId: "tor-apertura",
   },
   {
     id: "ev-past-2",
     kind: "partido",
     title: "vs Los Pibes",
     place: "Cancha 5 — Club Unión",
+    ...UNION,
     startsAt: "2026-09-13T21:00:00-03:00",
     modality: "f8",
     lineup: F8,
     tactics: "Ya jugado. Empate justo.",
     lineupPublishedAt: "2026-09-12T18:00:00-03:00",
+    tournamentId: "tor-apertura",
   },
   {
     id: "ev-past-3",
     kind: "partido",
     title: "vs Central Norte",
     place: "Predio Norte",
+    ...PREDIO_NORTE,
     startsAt: "2026-09-20T18:30:00-03:00",
     modality: "f8",
     lineup: F8,
     tactics: "Ya jugado. Nos ganaron de contra.",
     lineupPublishedAt: "2026-09-19T17:00:00-03:00",
+    tournamentId: "tor-apertura",
   },
   {
     id: "ev-reunion",
     kind: "reunion",
     title: "Charla previa",
     place: "Quincho del predio",
+    ...PREDIO_SUR,
     startsAt: "2026-09-23T20:00:00-03:00",
     modality: "f5",
     lineup: {},
     tactics: "Confirmamos horarios de la semana y quién trae pelotas.",
     lineupPublishedAt: null,
+    tournamentId: null,
   },
   {
     id: "ev-entreno",
     kind: "entrenamiento",
     title: "Entrenamiento de pases",
     place: "Cancha 5 — Club Unión",
+    ...UNION,
     startsAt: "2026-09-25T21:00:00-03:00",
     modality: "f5",
     lineup: { ARQ: "j2", LI: "j5", LD: "j11", EI: "j4", ED: "j1" },
     tactics: "Ritmo alto. Si llegás tarde, entras de a poco. Hidratate.",
     lineupPublishedAt: "2026-09-24T12:00:00-03:00",
+    tournamentId: null,
   },
   {
     id: "ev-partido",
     kind: "partido",
     title: "vs Los del Bajo",
     place: "Predio Sur, cancha 2",
+    ...PREDIO_SUR,
     startsAt: "2026-09-26T20:30:00-03:00",
     modality: "f8",
     lineup: F8,
     tactics:
       "Presión en la salida de ellos. Joaco se queda al área. Si empatamos, no abrir el fondo.",
     lineupPublishedAt: "2026-09-22T10:00:00-03:00",
+    tournamentId: "tor-clausura",
   },
   {
     id: "ev-f11",
     kind: "partido",
     title: "vs Racing del Barrio",
     place: "Cancha 11 — Club Unión",
+    ...UNION,
     startsAt: "2026-09-28T17:00:00-03:00",
     modality: "f11",
     lineup: {
@@ -134,6 +185,7 @@ const EVENTS: ClubEvent[] = [
     },
     tactics: "4-3-3. Mía y Valen abren. Joaco no baje a recibir: que le llegue de frente.",
     lineupPublishedAt: null,
+    tournamentId: "tor-clausura",
   },
 ];
 
@@ -308,6 +360,85 @@ function seedCallups(): {
   };
 }
 
+export function emptyClubState() {
+  return {
+    club: null as AppState["club"],
+    members: [] as Member[],
+    events: [] as ClubEvent[],
+    rsvps: [] as Rsvp[],
+    messages: [] as AppState["messages"],
+    charla: [] as CharlaPost[],
+    matchSheets: [] as MatchSheet[],
+    invites: [] as AppState["invites"],
+    convocatorias: [] as Convocatoria[],
+    inbox: [] as InboxItem[],
+    alertLog: [] as AlertLog[],
+    reminderPolicy: { firstHours: 24, secondHours: 48 },
+    tournaments: [] as Tournament[],
+    reminder: null as AppState["reminder"],
+  };
+}
+
+export function openClubs(): ClubBundle[] {
+  return [
+    {
+      club: { id: "club-bajo", name: "Los del Bajo", createdBy: "b-dt", inviteCode: "BAJO" },
+      members: [
+        { id: "b-dt", name: "Diego Luna", nick: "Diegote", role: "dt", number: null },
+        { id: "b-ayu", name: "Lara Pérez", nick: "Lara", role: "ayudante", number: null },
+        { id: "b-j1", name: "Pablo Ríos", nick: "Pablito", role: "jugador", number: 10 },
+        { id: "b-j2", name: "Enzo Díaz", nick: "Enzo", role: "jugador", number: 9 },
+      ],
+      events: [],
+      rsvps: [],
+      messages: [
+        {
+          id: "bm1",
+          memberId: "b-dt",
+          text: "Bienvenido al vestuario de Los del Bajo. Confirmá y listo.",
+          at: "2026-09-21T12:00:00-03:00",
+        },
+      ],
+      charla: [],
+      matchSheets: [
+        {
+          eventId: "b-ev1",
+          opponent: "Central",
+          goalsFor: 2,
+          goalsAgainst: 0,
+          notes: "Apertura cerrado.",
+          recordedAt: "2026-09-10T22:00:00-03:00",
+          players: [
+            { memberId: "b-j2", goals: 2, assists: 0, yellow: 0, red: 0 },
+            { memberId: "b-j1", goals: 0, assists: 2, yellow: 0, red: 0 },
+          ],
+        },
+      ],
+      invites: [],
+      convocatorias: [],
+      inbox: [],
+      alertLog: [],
+      reminderPolicy: { firstHours: 24, secondHours: 48 },
+      tournaments: [
+        {
+          id: "b-tor-1",
+          name: "Apertura barrio",
+          startedAt: "2026-08-01T00:00:00-03:00",
+          endedAt: "2026-09-12T00:00:00-03:00",
+          status: "finished",
+        },
+        {
+          id: "b-tor-2",
+          name: "Clausura barrio",
+          startedAt: "2026-09-13T00:00:00-03:00",
+          endedAt: null,
+          status: "active",
+        },
+      ],
+    },
+  ];
+}
+
 export function createSeed(): Omit<AppState, "hydrated"> {
   const callups = seedCallups();
   return {
@@ -321,6 +452,10 @@ export function createSeed(): Omit<AppState, "hydrated"> {
     inbox: callups.inbox,
     alertLog: callups.alertLog,
     reminderPolicy: { firstHours: 24, secondHours: 48 },
+    tournaments: TORNEOS,
+    archivedClubs: openClubs(),
+    profile: { name: "Martín Díaz", nick: "Profe" },
+    gpsConsent: "unset",
     charla: callups.charla,
     messages: [
       {

@@ -14,8 +14,8 @@
     "browser"
   ],
   "orientation": "portrait",
-  "background_color": "#f3eee6",
-  "theme_color": "#f3eee6",
+  "background_color": "#0b1c12",
+  "theme_color": "#0b1c12",
   "lang": "es-AR",
   "dir": "ltr",
   "categories": ["sports", "utilities"],

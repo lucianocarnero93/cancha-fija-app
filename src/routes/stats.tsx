@@ -1,16 +1,26 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { MatchSheetForm, MatchSheetRead } from "@/components/fija/match-sheet";
 import { CardRow, MyNumbers, RankBlock, RankRow, RecordStrip } from "@/components/fija/stat-blocks";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDay } from "@/lib/fija/format";
 import { outcome, playerRows, rankedBy, resultLabel, teamRecord } from "@/lib/fija/stats";
-import { sheetFor, useFija, useIsStaff, useMe } from "@/lib/fija/store";
+import {
+  activeTournament,
+  sheetFor,
+  sheetsForScope,
+  useFija,
+  useIsStaff,
+  useMe,
+} from "@/lib/fija/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/stats")({
   component: StatsPage,
   validateSearch: (search: Record<string, unknown>) => ({
     partido: typeof search.partido === "string" ? search.partido : undefined,
+    torneo: typeof search.torneo === "string" ? search.torneo : "general",
   }),
 });
 
@@ -18,21 +28,30 @@ function StatsPage() {
   const me = useMe();
   const staff = useIsStaff();
   const navigate = useNavigate();
-  const { partido } = Route.useSearch();
+  const { partido, torneo } = Route.useSearch();
   const club = useFija((s) => s.club);
   const events = useFija((s) => s.events);
   const members = useFija((s) => s.members);
   const sheets = useFija((s) => s.matchSheets);
+  const tournaments = useFija((s) => s.tournaments);
+  const createTournament = useFija((s) => s.createTournament);
+  const finishTournament = useFija((s) => s.finishTournament);
+  const scope = torneo || "general";
+  const scopedSheets = sheetsForScope(sheets, events, scope);
   const partidos = events
     .filter((e) => e.kind === "partido")
+    .filter((e) => scope === "general" || e.tournamentId === scope)
     .sort((a, b) => +new Date(b.startsAt) - +new Date(a.startsAt));
-  const focused = partidos.find((e) => e.id === partido);
+  const focused = partidos.find((e) => e.id === partido) ?? events.find((e) => e.id === partido);
+  const live = activeTournament(tournaments);
+  const [newName, setNewName] = useState("");
 
   if (focused) {
-    const back = () => navigate({ to: "/stats", search: { partido: undefined }, replace: true });
+    const back = () =>
+      navigate({ to: "/stats", search: { partido: undefined, torneo: scope }, replace: true });
     return (
       <main className="px-4 py-5">
-        <p className="text-sm text-muted">{staff ? "Planilla del DT" : club.name}</p>
+        <p className="text-sm text-muted">{staff ? "Planilla del DT" : club?.name}</p>
         <h1 className="text-2xl font-semibold">{staff ? "Cargar partido" : "Ficha del partido"}</h1>
         <div className="mt-4">
           {staff ? (
@@ -45,8 +64,8 @@ function StatsPage() {
     );
   }
 
-  const record = teamRecord(sheets);
-  const rows = playerRows(sheets, members);
+  const record = teamRecord(scopedSheets);
+  const rows = playerRows(scopedSheets, members);
   const scorers = rankedBy(rows, "goals");
   const assists = rankedBy(rows, "assists");
   const cardRows = rows.filter((row) => row.yellow > 0 || row.red > 0);
@@ -55,18 +74,77 @@ function StatsPage() {
   const pending = staff
     ? partidos.filter((e) => !sheetFor(e.id, sheets) && +new Date(e.startsAt) < Date.now())
     : [];
+  const currentLabel = scope === "general" ? "General del equipo" : tournaments.find((t) => t.id === scope)?.name;
 
   return (
     <main className="px-4 py-5">
-      <p className="text-sm text-muted">{club.name}</p>
+      <p className="text-sm text-muted">{club?.name}</p>
       <h1 className="text-2xl font-semibold">Estadísticas</h1>
       <p className="mt-1 text-sm text-muted">
-        {staff
-          ? "Cargá el resultado y los números de cada jugador."
-          : "Solo lectura. El DT y el ayudante cargan la planilla."}
+        Por torneo o el acumulado general. Los números generales no se reinician al cerrar un torneo.
       </p>
 
-      <div className="mt-4">
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <ScopeChip
+          active={scope === "general"}
+          onClick={() => navigate({ to: "/stats", search: { torneo: "general", partido: undefined } })}
+        >
+          General
+        </ScopeChip>
+        {tournaments.map((t) => (
+          <ScopeChip
+            key={t.id}
+            active={scope === t.id}
+            onClick={() => navigate({ to: "/stats", search: { torneo: t.id, partido: undefined } })}
+          >
+            {t.name}
+            {t.status === "active" ? " · activo" : ""}
+          </ScopeChip>
+        ))}
+      </div>
+
+      {staff ? (
+        <section className="mt-4 rounded-xl bg-surface p-4 shadow-card">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted">Gestión de torneo</p>
+          {live ? (
+            <div className="mt-2">
+              <p className="text-sm">
+                Activo: <span className="font-semibold">{live.name}</span>
+              </p>
+              <Button
+                variant="secondary"
+                className="mt-3 h-12 w-full"
+                onClick={() => finishTournament(live.id)}
+              >
+                Finalizar torneo
+              </Button>
+            </div>
+          ) : (
+            <form
+              className="mt-3 space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                createTournament(newName);
+                setNewName("");
+              }}
+            >
+              <p className="text-sm text-muted">No hay torneo activo. Arrancá el próximo.</p>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Clausura 2026"
+                required
+              />
+              <Button type="submit" className="h-12 w-full">
+                Empezar torneo
+              </Button>
+            </form>
+          )}
+        </section>
+      ) : null}
+
+      <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-accent">{currentLabel}</p>
+      <div className="mt-2">
         <RecordStrip record={record} />
       </div>
 
@@ -87,7 +165,7 @@ function StatsPage() {
                 <Button
                   variant="secondary"
                   className="h-14 w-full justify-between"
-                  onClick={() => navigate({ to: "/stats", search: { partido: event.id } })}
+                  onClick={() => navigate({ to: "/stats", search: { partido: event.id, torneo: scope } })}
                 >
                   <span className="truncate">{event.title}</span>
                   <span className="text-xs text-muted">{formatDay(event.startsAt)}</span>
@@ -99,42 +177,40 @@ function StatsPage() {
       ) : null}
 
       <div className="mt-5 space-y-5">
-      <RankBlock title="Goleadores" empty="Todavía no hay goles cargados.">
-        {scorers.map((row, i) => (
-          <RankRow
-            key={row.memberId}
-            rank={i + 1}
-            member={byId.get(row.memberId)}
-            value={row.goals}
-            unit="goles"
-          />
-        ))}
-      </RankBlock>
-
-      <RankBlock title="Máximos asistentes" empty="Nadie cargó asistencias todavía.">
-        {assists.map((row, i) => (
-          <RankRow
-            key={row.memberId}
-            rank={i + 1}
-            member={byId.get(row.memberId)}
-            value={row.assists}
-            unit="asistencias"
-          />
-        ))}
-      </RankBlock>
-
-      <RankBlock title="Tarjetas" empty="El equipo está limpio.">
-        {cardRows
-          .sort((a, b) => b.red - a.red || b.yellow - a.yellow)
-          .map((row) => (
-            <CardRow key={row.memberId} member={byId.get(row.memberId)} row={row} />
+        <RankBlock title="Goleadores" empty="Todavía no hay goles cargados.">
+          {scorers.map((row, i) => (
+            <RankRow
+              key={row.memberId}
+              rank={i + 1}
+              member={byId.get(row.memberId)}
+              value={row.goals}
+              unit="goles"
+            />
           ))}
-      </RankBlock>
+        </RankBlock>
+        <RankBlock title="Máximos asistentes" empty="Nadie cargó asistencias todavía.">
+          {assists.map((row, i) => (
+            <RankRow
+              key={row.memberId}
+              rank={i + 1}
+              member={byId.get(row.memberId)}
+              value={row.assists}
+              unit="asistencias"
+            />
+          ))}
+        </RankBlock>
+        <RankBlock title="Tarjetas" empty="El equipo está limpio.">
+          {cardRows
+            .sort((a, b) => b.red - a.red || b.yellow - a.yellow)
+            .map((row) => (
+              <CardRow key={row.memberId} member={byId.get(row.memberId)} row={row} />
+            ))}
+        </RankBlock>
       </div>
 
       <section className="mt-6">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Historial</h2>
-        {sheets.length === 0 ? (
+        {scopedSheets.length === 0 ? (
           <p className="mt-2 text-sm text-muted">Cuando el DT cargue un partido, aparece acá.</p>
         ) : (
           <ul className="mt-2 space-y-2">
@@ -147,7 +223,9 @@ function StatsPage() {
                   <li key={event.id}>
                     <button
                       type="button"
-                      onClick={() => navigate({ to: "/stats", search: { partido: event.id } })}
+                      onClick={() =>
+                        navigate({ to: "/stats", search: { partido: event.id, torneo: scope } })
+                      }
                       className="flex w-full items-center gap-3 rounded-xl bg-surface px-4 py-3 text-left shadow-card"
                     >
                       <span
@@ -174,30 +252,29 @@ function StatsPage() {
           </ul>
         )}
       </section>
-
-      {staff ? (
-        <div className="mt-6">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted">
-            Cargar otro partido
-          </p>
-          <ul className="space-y-2">
-            {partidos
-              .filter((e) => !sheetFor(e.id, sheets))
-              .map((event) => (
-                <li key={event.id}>
-                  <Button
-                    variant="outline"
-                    className="h-12 w-full justify-between"
-                    onClick={() => navigate({ to: "/stats", search: { partido: event.id } })}
-                  >
-                    <span className="truncate">{event.title}</span>
-                    <span className="text-xs text-muted">Planilla</span>
-                  </Button>
-                </li>
-              ))}
-          </ul>
-        </div>
-      ) : null}
     </main>
+  );
+}
+
+function ScopeChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "h-11 shrink-0 rounded-full px-4 text-sm font-semibold",
+        active ? "bg-accent text-accent-fg" : "bg-surface text-muted",
+      )}
+    >
+      {children}
+    </button>
   );
 }

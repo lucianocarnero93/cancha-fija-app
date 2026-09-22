@@ -21,6 +21,7 @@ export function InviteShareButton({
         variant={variant}
         className={className ?? "h-14 w-full text-base"}
         onClick={async () => {
+          if (!club) return;
           try {
             const result = await shareOrCopy(inviteSharePayload(club));
             setNote(result === "shared" ? "Elegí por dónde enviarlo." : "Enlace copiado.");

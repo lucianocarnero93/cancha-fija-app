@@ -1,10 +1,11 @@
-import { CalendarDays, ChartColumn, House, MessageCircle, Shield, Users } from "lucide-react";
+import { CalendarDays, ChartColumn, House, Lock, MessageCircle, Shield, Users } from "lucide-react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ROLE_LABEL, ROLE_TAB } from "@/lib/fija/format";
 import { useFija, useMe } from "@/lib/fija/store";
 import type { Role } from "@/lib/fija/types";
 import { cn } from "@/lib/utils";
+import { ClubGate } from "./club-gate";
 import { InboxBell } from "./inbox-bell";
 import { BrandLockup } from "./logo";
 import { PushBanner } from "./push-banner";
@@ -23,6 +24,8 @@ const NAV = [
 export function PhoneShell() {
   const setHydrated = useFija((s) => s.setHydrated);
   const tickAlerts = useFija((s) => s.tickAlerts);
+  const club = useFija((s) => s.club);
+  const hydrated = useFija((s) => s.hydrated);
 
   useEffect(() => {
     void useFija.persist.rehydrate();
@@ -36,14 +39,20 @@ export function PhoneShell() {
     <div className="min-h-dvh bg-void text-fg">
       <div className="app-titlebar" aria-hidden="true" />
       <PwaRegister />
-      <div className="locker-shell mx-auto flex min-h-dvh w-full max-w-phone flex-col shadow-card">
-        <div className="wood-strip" aria-hidden="true" />
-        <TestBar />
-        <PushBanner />
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
-          <Outlet />
-        </div>
-        <BottomNav />
+      <div className="pitch-shell mx-auto flex min-h-dvh w-full max-w-phone flex-col shadow-card">
+        <div className="grass-strip" aria-hidden="true" />
+        {hydrated && !club ? (
+          <ClubGate />
+        ) : (
+          <>
+            <TestBar />
+            <PushBanner />
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
+              <Outlet />
+            </div>
+            <BottomNav />
+          </>
+        )}
       </div>
     </div>
   );
@@ -64,6 +73,10 @@ function TestBar() {
         <BrandLockup kicker="Modo prueba" />
         <div className="flex items-center">
           <InboxBell />
+          <Link to="/seguridad" className="grid size-11 place-items-center text-muted">
+            <Lock className="size-4" />
+            <span className="sr-only">Seguridad</span>
+          </Link>
           <button type="button" onClick={resetDemo} className="h-11 px-2 text-xs text-muted underline">
             Reset
           </button>
@@ -93,7 +106,7 @@ function TestBar() {
         </select>
       ) : (
         <p className="mt-2 text-xs text-muted">
-          {club.name} · {me.nick} · {ROLE_LABEL[me.role]}
+          {club?.name ?? "Sin equipo"} · {me.nick} · {ROLE_LABEL[me.role]}
         </p>
       )}
     </header>
@@ -114,7 +127,7 @@ function BottomNav() {
                 to={item.to}
                 search={
                   item.to === "/stats"
-                    ? { partido: undefined }
+                    ? { partido: undefined, torneo: "general" }
                     : item.to === "/chat"
                       ? { title: undefined, text: undefined, url: undefined }
                       : undefined

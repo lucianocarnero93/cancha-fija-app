@@ -5,6 +5,8 @@ export type RsvpStatus = "pendiente" | "voy" | "no";
 export type InboxKind = "convocatoria" | "recordatorio" | "formacion" | "charla";
 export type InboxAudience = "all" | "pending" | "staff";
 export type AlertKind = "first" | "second";
+export type TournamentStatus = "active" | "finished";
+export type GpsConsent = "unset" | "granted" | "denied";
 
 export type Member = {
   id: string;
@@ -19,6 +21,14 @@ export type Club = {
   name: string;
   createdBy: string;
   inviteCode: string;
+};
+
+export type Tournament = {
+  id: string;
+  name: string;
+  startedAt: string;
+  endedAt: string | null;
+  status: TournamentStatus;
 };
 
 export type Invite = {
@@ -51,11 +61,15 @@ export type ClubEvent = {
   kind: EventKind;
   title: string;
   place: string;
+  mapsQuery: string;
+  lat: number | null;
+  lng: number | null;
   startsAt: string;
   modality: Modality;
   lineup: Record<string, string>;
   tactics: string;
   lineupPublishedAt: string | null;
+  tournamentId: string | null;
 };
 
 export type Rsvp = {
@@ -112,7 +126,7 @@ export type AlertLog = {
   at: string;
 };
 
-export type AppState = {
+export type ClubBundle = {
   club: Club;
   members: Member[];
   events: ClubEvent[];
@@ -125,6 +139,31 @@ export type AppState = {
   inbox: InboxItem[];
   alertLog: AlertLog[];
   reminderPolicy: ReminderPolicy;
+  tournaments: Tournament[];
+};
+
+export type Profile = {
+  name: string;
+  nick: string;
+};
+
+export type AppState = {
+  club: Club | null;
+  members: Member[];
+  events: ClubEvent[];
+  rsvps: Rsvp[];
+  messages: ChatMessage[];
+  charla: CharlaPost[];
+  matchSheets: MatchSheet[];
+  invites: Invite[];
+  convocatorias: Convocatoria[];
+  inbox: InboxItem[];
+  alertLog: AlertLog[];
+  reminderPolicy: ReminderPolicy;
+  tournaments: Tournament[];
+  archivedClubs: ClubBundle[];
+  profile: Profile;
+  gpsConsent: GpsConsent;
   activeId: string;
   reminder: Reminder;
   hydrated: boolean;
