@@ -1,16 +1,14 @@
 import { CalendarDays, ChartColumn, House, Lock, MessageCircle, Shield, Users } from "lucide-react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ROLE_LABEL, ROLE_TAB } from "@/lib/fija/format";
+import { ROLE_LABEL } from "@/lib/fija/format";
 import { useFija, useMe } from "@/lib/fija/store";
-import type { Role } from "@/lib/fija/types";
 import { cn } from "@/lib/utils";
 import { ClubGate } from "./club-gate";
 import { InboxBell } from "./inbox-bell";
 import { BrandLockup } from "./logo";
 import { PushBanner } from "./push-banner";
 import { PwaRegister } from "./pwa-register";
-import { Segmented } from "./segmented";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: House, exact: true },
@@ -47,7 +45,7 @@ export function PhoneShell() {
           <ClubGate />
         ) : (
           <>
-            <TestBar />
+            <AppBar />
             <PushBanner />
             <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
               <Outlet />
@@ -60,19 +58,14 @@ export function PhoneShell() {
   );
 }
 
-function TestBar() {
+function AppBar() {
   const me = useMe();
-  const members = useFija((s) => s.members);
-  const viewAsRole = useFija((s) => s.viewAsRole);
-  const setActive = useFija((s) => s.setActive);
-  const resetDemo = useFija((s) => s.resetDemo);
   const club = useFija((s) => s.club);
-  const players = members.filter((m) => m.role === "jugador");
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/95 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
       <div className="flex items-center justify-between gap-2">
-        <BrandLockup kicker="Modo prueba" />
+        <BrandLockup />
         <div className="flex items-center">
           <CloudDot />
           <InboxBell />
@@ -80,38 +73,11 @@ function TestBar() {
             <Lock className="size-4" />
             <span className="sr-only">Seguridad</span>
           </Link>
-          <button type="button" onClick={resetDemo} className="h-11 px-2 text-xs text-muted underline">
-            Reset
-          </button>
         </div>
       </div>
-      <Segmented
-        className="mt-3"
-        value={me.role}
-        onChange={(role) => viewAsRole(role)}
-        options={(["dt", "ayudante", "jugador"] as Role[]).map((role) => ({
-          id: role,
-          label: ROLE_TAB[role],
-        }))}
-      />
-      {me.role === "jugador" ? (
-        <select
-          className="mt-2 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-fg"
-          value={me.id}
-          onChange={(e) => setActive(e.target.value)}
-        >
-          {players.map((p) => (
-            <option key={p.id} value={p.id}>
-              Ves como {p.nick}
-              {p.number != null ? ` · ${p.number}` : ""}
-            </option>
-          ))}
-        </select>
-      ) : (
-        <p className="mt-2 text-xs text-muted">
-          {club?.name ?? "Sin equipo"} · {me.nick} · {ROLE_LABEL[me.role]}
-        </p>
-      )}
+      <p className="mt-2 text-xs text-muted">
+        {club?.name ?? "Sin equipo"} · {me.nick} · {ROLE_LABEL[me.role]}
+      </p>
     </header>
   );
 }
