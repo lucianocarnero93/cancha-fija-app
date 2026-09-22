@@ -51,6 +51,7 @@ type State = ReturnType<typeof createSeed> & {
     lng?: number | null;
     startsAt: string;
     modality: Modality;
+    tournamentId?: string | null;
   }) => void;
   updateEvent: (id: string, patch: Partial<ClubEvent>) => void;
   deleteEvent: (id: string) => void;
@@ -160,10 +161,14 @@ export const useFija = create<State>()(
       dismissReminder: () => set({ reminder: null }),
 
       // Crea un partido, entrenamiento o reunión. Solo DT o ayudante.
-      // Cada jugador queda en "pendiente" hasta que confirme.
+      // Un partido no se crea si no hay torneo: tiene que quedar asociado a uno.
       createEvent: (input) => {
         if (!isStaffId(get())) return;
-        const activeTournament = get().tournaments.find((tournament) => tournament.status === "active");
+        const tournaments = get().tournaments;
+        const chosen = tournaments.find((tournament) => tournament.id === input.tournamentId);
+        const activeTournament = tournaments.find((tournament) => tournament.status === "active");
+        const tournamentForMatch = chosen ?? activeTournament;
+        if (input.kind === "partido" && !tournamentForMatch) return;
         const event: ClubEvent = {
           id: uid("ev"),
           kind: input.kind,
@@ -177,7 +182,7 @@ export const useFija = create<State>()(
           lineup: {},
           tactics: "",
           lineupPublishedAt: null,
-          tournamentId: input.kind === "partido" ? (activeTournament?.id ?? null) : null,
+          tournamentId: input.kind === "partido" ? (tournamentForMatch?.id ?? null) : null,
         };
         const players = get().members.filter((person) => person.role === "jugador");
         const pendingAnswers = players.map((player) => ({

@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { fromDatetimeLocal, KIND_LABEL, toDatetimeLocal } from "@/lib/fija/format";
 import { MODALITY_SHORT, MODALITIES } from "@/lib/fija/formations";
 import { parseMapsInput } from "@/lib/fija/maps";
-import { useFija } from "@/lib/fija/store";
+import { activeTournament, useFija } from "@/lib/fija/store";
 import type { ClubEvent, EventKind, Modality } from "@/lib/fija/types";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -13,6 +14,8 @@ import { Segmented } from "./segmented";
 
 export function CreateEventButton() {
   const createEvent = useFija((s) => s.createEvent);
+  const tournaments = useFija((s) => s.tournaments);
+  const current = activeTournament(tournaments);
   return (
     <EventDialog
       title="Agendar"
@@ -25,6 +28,7 @@ export function CreateEventButton() {
         place: "",
         mapsQuery: "",
         when: "2026-09-27T20:30",
+        tournamentId: current?.id ?? tournaments[0]?.id ?? "",
       }}
       onSubmit={(data) => {
         const maps = parseMapsInput(data.mapsQuery);
@@ -37,6 +41,7 @@ export function CreateEventButton() {
           lng: maps.lng,
           startsAt: fromDatetimeLocal(data.when),
           modality: data.modality,
+          tournamentId: data.kind === "partido" ? data.tournamentId : null,
         });
       }}
     />
@@ -62,6 +67,7 @@ export function EditEventButton({ event }: { event: ClubEvent }) {
         place: event.place,
         mapsQuery: event.mapsQuery || "",
         when: toDatetimeLocal(event.startsAt),
+        tournamentId: event.tournamentId ?? "",
       }}
       onSubmit={(data) => {
         const maps = parseMapsInput(data.mapsQuery);
@@ -75,6 +81,7 @@ export function EditEventButton({ event }: { event: ClubEvent }) {
           startsAt: fromDatetimeLocal(data.when),
           modality: data.modality,
           lineup: event.lineup,
+          tournamentId: data.kind === "partido" ? data.tournamentId || null : null,
         });
       }}
       onDelete={() => deleteEvent(event.id)}
@@ -89,6 +96,7 @@ type Draft = {
   place: string;
   mapsQuery: string;
   when: string;
+  tournamentId: string;
 };
 
 function EventDialog({
@@ -113,6 +121,10 @@ function EventDialog({
   const [place, setPlace] = useState(initial.place);
   const [mapsQuery, setMapsQuery] = useState(initial.mapsQuery);
   const [when, setWhen] = useState(initial.when);
+  const [tournamentId, setTournamentId] = useState(initial.tournamentId);
+  const tournaments = useFija((s) => s.tournaments);
+  const matchNeedsTournament = kind === "partido";
+  const canSaveMatch = !matchNeedsTournament || Boolean(tournamentId && tournaments.some((t) => t.id === tournamentId));
 
   function reset() {
     setKind(initial.kind);
@@ -121,6 +133,7 @@ function EventDialog({
     setPlace(initial.place);
     setMapsQuery(initial.mapsQuery);
     setWhen(initial.when);
+    setTournamentId(initial.tournamentId);
   }
 
   return (
@@ -186,10 +199,38 @@ function EventDialog({
               }}
             />
           </div>
+          {matchNeedsTournament ? (
+            <div className="space-y-1.5">
+              <Label>Torneo</Label>
+              {tournaments.length === 0 ? (
+                <p className="text-sm text-muted">
+                  Primero hay que crear el torneo. Sin torneo no se puede cargar un partido.{" "}
+                  <Link to="/stats" search={{ torneo: "general", partido: undefined }} className="font-semibold text-accent">
+                    Ir a estadísticas
+                  </Link>
+                </p>
+              ) : (
+                <select
+                  className="h-12 w-full rounded-md border border-border bg-bg px-3 text-sm"
+                  value={tournamentId}
+                  onChange={(e) => setTournamentId(e.target.value)}
+                >
+                  {tournaments.map((tournament) => (
+                    <option key={tournament.id} value={tournament.id}>
+                      {tournament.name}
+                      {tournament.status === "active" ? " · activo" : " · cerrado"}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          ) : null}
           <Button
             className="h-14 w-full text-base"
+            disabled={!canSaveMatch}
             onClick={() => {
-              onSubmit({ kind, modality, title: eventTitle, place, mapsQuery, when });
+              if (!canSaveMatch) return;
+              onSubmit({ kind, modality, title: eventTitle, place, mapsQuery, when, tournamentId });
               setOpen(false);
             }}
           >

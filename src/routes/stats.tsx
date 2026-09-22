@@ -82,7 +82,7 @@ function StatsPage() {
       <p className="text-sm text-muted">{club?.name}</p>
       <h1 className="text-2xl font-semibold">Estadísticas</h1>
       <p className="mt-1 text-sm text-muted">
-        Por torneo o el acumulado general. Los números generales no se reinician al cerrar un torneo.
+        Elegí un torneo para ver solo esos partidos. General suma todos los torneos que ya jugaron.
       </p>
 
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
@@ -90,7 +90,7 @@ function StatsPage() {
           active={scope === "general"}
           onClick={() => navigate({ to: "/stats", search: { torneo: "general", partido: undefined } })}
         >
-          General
+          General · todos
         </ScopeChip>
         {tournaments.map((t) => (
           <ScopeChip
@@ -107,20 +107,32 @@ function StatsPage() {
       {staff ? (
         <section className="mt-4 rounded-xl bg-surface p-4 shadow-card">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted">Gestión de torneo</p>
-          {live ? (
+          {tournaments.length === 0 ? (
+            <p className="mt-2 text-sm text-muted">
+              Creá el primer torneo antes de agendar un partido. Cada partido queda atado a un torneo.
+            </p>
+          ) : null}
+          {scope !== "general" && tournaments.find((t) => t.id === scope)?.status === "active" ? (
             <div className="mt-2">
               <p className="text-sm">
-                Activo: <span className="font-semibold">{live.name}</span>
+                Estás viendo <span className="font-semibold">{currentLabel}</span>. Al finalizarlo, estos
+                números quedan cerrados y el próximo torneo arranca de cero.
               </p>
               <Button
                 variant="secondary"
                 className="mt-3 h-12 w-full"
-                onClick={() => finishTournament(live.id)}
+                onClick={() => finishTournament(scope)}
               >
-                Finalizar torneo
+                Finalizar estadísticas de este torneo
               </Button>
             </div>
-          ) : (
+          ) : null}
+          {scope !== "general" && tournaments.find((t) => t.id === scope)?.status === "finished" ? (
+            <p className="mt-2 text-sm text-muted">
+              {currentLabel} está cerrado. Estas estadísticas no se mezclan con el torneo que venga.
+            </p>
+          ) : null}
+          {!live ? (
             <form
               className="mt-3 space-y-2"
               onSubmit={(e) => {
@@ -129,7 +141,11 @@ function StatsPage() {
                 setNewName("");
               }}
             >
-              <p className="text-sm text-muted">No hay torneo activo. Arrancá el próximo.</p>
+              <p className="text-sm text-muted">
+                {tournaments.length === 0
+                  ? "Nombre del torneo."
+                  : "No hay torneo activo. Arrancá el próximo para cargar partidos nuevos."}
+              </p>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
@@ -140,7 +156,12 @@ function StatsPage() {
                 Empezar torneo
               </Button>
             </form>
-          )}
+          ) : scope === "general" ? (
+            <p className="mt-2 text-sm">
+              Torneo en juego: <span className="font-semibold">{live.name}</span>. Entrá a su ficha para
+              finalizarlo.
+            </p>
+          ) : null}
         </section>
       ) : null}
 
@@ -242,7 +263,12 @@ function StatsPage() {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">{event.title}</span>
                         <span className="text-xs text-muted">
-                          {formatDay(event.startsAt)} · {resultLabel(sheet.goalsFor, sheet.goalsAgainst)}
+                          {formatDay(event.startsAt)}
+                          {scope === "general"
+                            ? ` · ${tournaments.find((t) => t.id === event.tournamentId)?.name ?? "Sin torneo"}`
+                            : ""}
+                          {" · "}
+                          {resultLabel(sheet.goalsFor, sheet.goalsAgainst)}
                           {staff ? " · Editar" : " · Ver ficha"}
                         </span>
                       </span>
