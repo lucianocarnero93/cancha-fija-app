@@ -1,3 +1,5 @@
+// Nube del vestuario. loadClubDoc trae el equipo. saveClubDoc lo guarda.
+// La llave es el código del equipo, no el mail de una sola persona.
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { sanitizeCode } from "./sanitize";

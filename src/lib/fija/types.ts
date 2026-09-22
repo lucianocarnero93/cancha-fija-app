@@ -1,3 +1,18 @@
+/*
+  Diccionario de la app. Estos nombres son los que usa el resto del código.
+  No los cambié para que todo siga funcionando igual.
+
+  Role          = el puesto: dt, ayudante o jugador
+  Member        = una persona del plantel (nombre, apodo, puesto, número)
+  Club          = el equipo. inviteCode es el código para entrar
+  Tournament    = un torneo. Puede estar activo o terminado
+  ClubEvent     = un partido, un entrenamiento o una reunión
+  Rsvp          = la respuesta de un jugador: pendiente, voy o no
+  MatchSheet    = la planilla de un partido (goles y tarjetas)
+  PlayerMatchStat = goles, asistencias, amarillas y rojas de un jugador
+  lineup        = la formación: cada puesto de la cancha apunta a un jugador
+*/
+
 export type Role = "dt" | "ayudante" | "jugador";
 export type Modality = "f5" | "f8" | "f9" | "f11";
 export type EventKind = "partido" | "entrenamiento" | "reunion";

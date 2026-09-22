@@ -1,3 +1,4 @@
+// Charla del vestuario. El DT también publica avisos técnicos.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Chalkboard } from "@/components/fija/chalkboard";

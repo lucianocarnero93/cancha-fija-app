@@ -1,3 +1,4 @@
+// Equipo: plantel, invitar jugadores y cambiar el puesto de cada uno.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { InviteShareButton } from "@/components/fija/invite-share";

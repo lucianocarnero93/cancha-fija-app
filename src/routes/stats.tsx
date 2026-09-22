@@ -1,3 +1,4 @@
+// Estadísticas: goleadores, asistencias, tarjetas y torneos.
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { MatchSheetForm, MatchSheetRead } from "@/components/fija/match-sheet";

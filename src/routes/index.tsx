@@ -1,3 +1,4 @@
+// Inicio: pendientes del equipo, próximo partido y acceso a la pizarra.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Chalkboard } from "@/components/fija/chalkboard";
 import { EventCard } from "@/components/fija/event-card";

@@ -1,3 +1,4 @@
+// Pizarra: el DT y el ayudante arman la formación del partido.
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Chalkboard } from "@/components/fija/chalkboard";

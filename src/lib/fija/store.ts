@@ -90,6 +90,28 @@ const blank = {
   activeId: GUEST_ID,
 };
 
+/*
+  Memoria de la app. Todo lo que ves en pantalla sale de acá
+  y se guarda en el celular. Si hay código de equipo, también se copia a la nube.
+
+  Nombres sencillos de cada función:
+  - createClub        crear equipo. Quien lo crea es el DT.
+  - joinClub          entrar con el código que pasó el DT.
+  - leaveClub         salir del equipo para poder entrar a otro.
+  - invitePlayer      sumar un jugador al plantel.
+  - assignRole        pasar a alguien a DT, ayudante o jugador.
+  - createEvent       anotar un partido, entrenamiento o reunión.
+  - setSpot           poner un jugador en un puesto de la cancha.
+  - publishLineup     avisar que la formación ya está lista.
+  - saveMatchSheet    guardar goles, asistencias y tarjetas.
+  - createTournament  abrir un torneo nuevo.
+  - finishTournament  cerrar el torneo. Las stats generales siguen.
+  - setRsvp           el jugador dice si va o no.
+  - sendChat          mensaje de la charla.
+  - syncFromCloud     traer el equipo desde la nube.
+  - flushCloud        subir el equipo a la nube.
+*/
+
 export const useFija = create<State>()(
   persist(
     (set, get) => ({

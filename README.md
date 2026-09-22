@@ -8,7 +8,7 @@ PWA para organizar fútbol amateur (5, 8, 9 y 11) con estética de vestuario: co
 - **Creador del equipo**: crear/editar el equipo, invitar jugadores y designar DT / ayudante
 - **Jugador**: ver, confirmar o rechazar asistencia. Stats en solo lectura.
 
-El menú de prueba de arriba cambia de rol. Los datos viven en el almacenamiento local del navegador.
+El DT y el ayudante editan. El jugador mira y confirma si va. Para leer el código en criollo, abrí [LEEME.md](LEEME.md).
 
 ## Convocatorias y alertas
 

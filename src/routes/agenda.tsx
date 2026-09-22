@@ -1,3 +1,4 @@
+// Agenda: lista de partidos, entrenamientos y reuniones.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CreateEventButton, EditEventButton } from "@/components/fija/event-editor";
 import { EventCard } from "@/components/fija/event-card";
