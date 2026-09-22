@@ -24,7 +24,7 @@ Un vestuario de fútbol amateur en el celular.
 | `src/routes/equipo.tsx` | Plantel, invitar y roles |
 | `src/routes/seguridad.tsx` | GPS, nube y salir del equipo |
 | `src/routes/login.tsx` | Botón de Google |
-| `src/lib/fija/store.ts` | La memoria: todo lo que se guarda |
+| `src/lib/fija/store.ts` | La memoria. Cada función tiene un comentario arriba que dice qué hace |
 | `src/lib/fija/types.ts` | El diccionario de datos |
 | `src/lib/fija/cloud.ts` | Copia del equipo en la base |
 | `src/components/fija/` | Las piezas visuales (logo, cancha, planilla) |

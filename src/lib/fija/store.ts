@@ -118,33 +118,52 @@ export const useFija = create<State>()(
       ...blank,
       hydrated: false,
       cloudStatus: "idle" as CloudStatus,
+      // Marca que el celular ya recuperó lo guardado.
       setHydrated: () => set({ hydrated: true }),
-      setActive: (id) => set({ activeId: id }),
+
+      // Elige qué persona del plantel está usando la app ahora.
+      setActive: (personId) => set({ activeId: personId }),
+
+      // Busca a la primera persona con ese puesto y la pone como usuario actual.
       viewAsRole: (role) => {
-        const { members } = get();
-        const match = members.find((m) => m.role === role);
-        if (match) set({ activeId: match.id });
+        const people = get().members;
+        const personWithThatRole = people.find((person) => person.role === role);
+        if (personWithThatRole) set({ activeId: personWithThatRole.id });
       },
+
+      // El jugador actual dice si va, no va, o todavía no contestó.
       setRsvp: (eventId, status) => {
-        const { activeId, rsvps, reminder } = get();
-        const next = upsertRsvp(rsvps, eventId, activeId, status);
-        const stillPending = next.some((r) => r.eventId === eventId && r.status === "pendiente");
+        const currentPersonId = get().activeId;
+        const updatedAnswers = upsertRsvp(get().rsvps, eventId, currentPersonId, status);
+        const someoneStillPending = updatedAnswers.some(
+          (answer) => answer.eventId === eventId && answer.status === "pendiente",
+        );
         set({
-          rsvps: next,
-          reminder: stillPending ? reminder : null,
+          rsvps: updatedAnswers,
+          reminder: someoneStillPending ? get().reminder : null,
         });
       },
+
+      // El DT anota la respuesta de otro jugador.
       setMemberRsvp: (eventId, memberId, status) => {
         set({ rsvps: upsertRsvp(get().rsvps, eventId, memberId, status) });
       },
+
+      // Manda el aviso de "confirmá si vas" para un partido.
       sendReminder: (eventId) => {
-        const event = get().events.find((e) => e.id === eventId);
+        const event = get().events.find((item) => item.id === eventId);
         set({ reminder: { eventId, sentAt: new Date().toISOString() } });
         void notifyReminder(event);
       },
+
+      // Cierra el cartel de recordatorio.
       dismissReminder: () => set({ reminder: null }),
+
+      // Crea un partido, entrenamiento o reunión. Solo DT o ayudante.
+      // Cada jugador queda en "pendiente" hasta que confirme.
       createEvent: (input) => {
         if (!isStaffId(get())) return;
+        const activeTournament = get().tournaments.find((tournament) => tournament.status === "active");
         const event: ClubEvent = {
           id: uid("ev"),
           kind: input.kind,
@@ -158,315 +177,372 @@ export const useFija = create<State>()(
           lineup: {},
           tactics: "",
           lineupPublishedAt: null,
-          tournamentId:
-            input.kind === "partido"
-              ? (get().tournaments.find((t) => t.status === "active")?.id ?? null)
-              : null,
+          tournamentId: input.kind === "partido" ? (activeTournament?.id ?? null) : null,
         };
-        const players = get().members.filter((m) => m.role === "jugador");
-        const extra = players.map((p) => ({
+        const players = get().members.filter((person) => person.role === "jugador");
+        const pendingAnswers = players.map((player) => ({
           eventId: event.id,
-          memberId: p.id,
+          memberId: player.id,
           status: "pendiente" as const,
         }));
-        set({ events: [...get().events, event], rsvps: [...get().rsvps, ...extra] });
+        set({ events: [...get().events, event], rsvps: [...get().rsvps, ...pendingAnswers] });
       },
+
+      // Cambia datos de un evento ya creado. Solo DT o ayudante.
       updateEvent: (id, patch) => {
         if (!isStaffId(get())) return;
         set({
-          events: get().events.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+          events: get().events.map((event) => (event.id === id ? { ...event, ...patch } : event)),
         });
       },
+
+      // Borra el evento y todo lo que colgaba de él: respuestas, planilla y avisos.
       deleteEvent: (id) => {
         if (!isStaffId(get())) return;
         set({
-          events: get().events.filter((e) => e.id !== id),
-          rsvps: get().rsvps.filter((r) => r.eventId !== id),
-          matchSheets: get().matchSheets.filter((s) => s.eventId !== id),
-          convocatorias: get().convocatorias.filter((c) => c.eventId !== id),
-          alertLog: get().alertLog.filter((a) => a.eventId !== id),
+          events: get().events.filter((event) => event.id !== id),
+          rsvps: get().rsvps.filter((answer) => answer.eventId !== id),
+          matchSheets: get().matchSheets.filter((sheet) => sheet.eventId !== id),
+          convocatorias: get().convocatorias.filter((callup) => callup.eventId !== id),
+          alertLog: get().alertLog.filter((alert) => alert.eventId !== id),
         });
       },
+
+      // Pone a un jugador en un puesto de la cancha.
+      // Si memberId viene vacío, saca a quien estaba en ese puesto.
+      // Un jugador no puede estar en dos puestos a la vez.
       setSpot: (eventId, slot, memberId) => {
         if (!isStaffId(get())) return;
         set({
-          events: get().events.map((e) => {
-            if (e.id !== eventId) return e;
-            const lineup = { ...e.lineup };
-            if (!memberId) delete lineup[slot];
-            else {
-              for (const key of Object.keys(lineup)) {
-                if (lineup[key] === memberId) delete lineup[key];
+          events: get().events.map((event) => {
+            if (event.id !== eventId) return event;
+            const lineup = { ...event.lineup };
+            if (!memberId) {
+              delete lineup[slot];
+            } else {
+              for (const position of Object.keys(lineup)) {
+                if (lineup[position] === memberId) delete lineup[position];
               }
               lineup[slot] = memberId;
             }
-            return { ...e, lineup };
+            return { ...event, lineup };
           }),
         });
       },
+
+      // Guarda la nota táctica que escribe el DT debajo de la cancha.
       setTactics: (eventId, tactics) => {
         if (!isStaffId(get())) return;
         set({
-          events: get().events.map((e) => (e.id === eventId ? { ...e, tactics } : e)),
+          events: get().events.map((event) => (event.id === eventId ? { ...event, tactics } : event)),
         });
       },
+
+      // Avisa a todo el plantel que la formación ya está publicada.
       publishLineup: (eventId) => {
         if (!isStaffId(get())) return;
-        const event = get().events.find((e) => e.id === eventId);
+        const event = get().events.find((item) => item.id === eventId);
         if (!event) return;
-        const at = new Date().toISOString();
-        const item: InboxItem = {
+        const moment = new Date().toISOString();
+        const notice: InboxItem = {
           id: uid("in"),
           kind: "formacion",
           title: event.lineupPublishedAt ? "Formación actualizada" : "Formación publicada",
           body: `El DT colgó la pizarra para ${event.title}.`,
           eventId,
           audience: "all",
-          at,
+          at: moment,
           readBy: [get().activeId],
         };
         set({
-          events: get().events.map((e) => (e.id === eventId ? { ...e, lineupPublishedAt: at } : e)),
-          inbox: [...get().inbox, item],
+          events: get().events.map((item) =>
+            item.id === eventId ? { ...item, lineupPublishedAt: moment } : item,
+          ),
+          inbox: [...get().inbox, notice],
         });
         void notifyApp({
-          body: item.body,
-          tag: `vestuario-form-${eventId}-${at}`,
+          body: notice.body,
+          tag: `vestuario-form-${eventId}-${moment}`,
           eventId,
         });
       },
+
+      // Manda un mensaje a la charla del equipo.
       sendChat: (text) => {
-        const body = sanitizeText(text, 400);
-        if (!body) return;
-        const msg: ChatMessage = {
+        const cleanText = sanitizeText(text, 400);
+        if (!cleanText) return;
+        const message: ChatMessage = {
           id: uid("msg"),
           memberId: get().activeId,
-          text: body,
+          text: cleanText,
           at: new Date().toISOString(),
         };
-        set({ messages: [...get().messages, msg] });
+        set({ messages: [...get().messages, message] });
         void queueSync("vestuario-chat");
       },
+
+      // El DT publica un aviso técnico y deja una notificación para todos.
       postCharla: (text) => {
         if (!isStaffId(get())) return;
-        const body = sanitizeText(text, 400);
-        if (!body) return;
+        const cleanText = sanitizeText(text, 400);
+        if (!cleanText) return;
         const post: CharlaPost = {
           id: uid("ch"),
           memberId: get().activeId,
-          text: body,
+          text: cleanText,
           at: new Date().toISOString(),
         };
-        const item: InboxItem = {
+        const notice: InboxItem = {
           id: uid("in"),
           kind: "charla",
           title: "Charla técnica",
-          body,
+          body: cleanText,
           audience: "all",
           at: post.at,
           readBy: [get().activeId],
         };
         set({
           charla: [...get().charla, post],
-          inbox: [...get().inbox, item],
+          inbox: [...get().inbox, notice],
         });
         void notifyApp({
-          body,
+          body: cleanText,
           tag: `vestuario-charla-${post.id}`,
         });
       },
+
+      // El DT convoca al partido. Reinicia las alertas de ese partido.
       sendConvocatoria: (eventId) => {
         if (!isStaffId(get())) return;
-        const event = get().events.find((e) => e.id === eventId);
+        const event = get().events.find((item) => item.id === eventId);
         if (!event) return;
-        const at = new Date().toISOString();
-        const conv: Convocatoria = { eventId, sentAt: at, sentBy: get().activeId };
-        const item: InboxItem = {
+        const moment = new Date().toISOString();
+        const callup: Convocatoria = { eventId, sentAt: moment, sentBy: get().activeId };
+        const notice: InboxItem = {
           id: uid("in"),
           kind: "convocatoria",
           title: `Convocatoria: ${event.title}`,
           body: `Confirmá si vas. ${event.place}.`,
           eventId,
           audience: "all",
-          at,
+          at: moment,
           readBy: [get().activeId],
         };
         set({
-          convocatorias: [...get().convocatorias.filter((c) => c.eventId !== eventId), conv],
-          alertLog: get().alertLog.filter((a) => a.eventId !== eventId),
-          inbox: [...get().inbox, item],
-          reminder: { eventId, sentAt: at },
+          convocatorias: [...get().convocatorias.filter((item) => item.eventId !== eventId), callup],
+          alertLog: get().alertLog.filter((alert) => alert.eventId !== eventId),
+          inbox: [...get().inbox, notice],
+          reminder: { eventId, sentAt: moment },
         });
         void notifyReminder(event);
       },
+
+      // Define a las cuántas horas se manda el primer y el segundo recordatorio.
       setReminderPolicy: (policy) => {
         if (!isStaffId(get())) return;
         const firstHours = clampHours(policy.firstHours);
         const secondHours = clampHours(Math.max(policy.secondHours, firstHours));
         set({ reminderPolicy: { firstHours, secondHours } });
       },
+      // Cada tanto revisa si ya pasó el plazo y hay que recordar a los que no contestaron.
       tickAlerts: () => {
         const state = get();
         const now = Date.now();
         const { firstHours, secondHours } = state.reminderPolicy;
-        let inbox = state.inbox;
-        let alertLog = state.alertLog;
-        let changed = false;
-        for (const conv of state.convocatorias) {
-          const event = state.events.find((e) => e.id === conv.eventId);
+        let notices = state.inbox;
+        let alertsSent = state.alertLog;
+        let somethingChanged = false;
+
+        for (const callup of state.convocatorias) {
+          const event = state.events.find((item) => item.id === callup.eventId);
           if (!event) continue;
-          const pending = state.rsvps.filter(
-            (r) => r.eventId === conv.eventId && r.status === "pendiente",
+          const peopleWhoDidNotAnswer = state.rsvps.filter(
+            (answer) => answer.eventId === callup.eventId && answer.status === "pendiente",
           );
-          if (pending.length === 0) continue;
-          const hours = hoursSince(conv.sentAt, now);
-          if (
-            hours >= firstHours &&
-            !alertLog.some((a) => a.eventId === conv.eventId && a.kind === "first")
-          ) {
-            const at = new Date().toISOString();
-            const log: AlertLog = { id: uid("al"), eventId: conv.eventId, kind: "first", at };
-            const item: InboxItem = {
+          if (peopleWhoDidNotAnswer.length === 0) continue;
+
+          const hoursSinceCallup = hoursSince(callup.sentAt, now);
+          const alreadySentFirst = alertsSent.some(
+            (alert) => alert.eventId === callup.eventId && alert.kind === "first",
+          );
+          const alreadySentSecond = alertsSent.some(
+            (alert) => alert.eventId === callup.eventId && alert.kind === "second",
+          );
+
+          // Primer recordatorio: se lo ve el jugador que todavía no confirmó.
+          if (hoursSinceCallup >= firstHours && !alreadySentFirst) {
+            const moment = new Date().toISOString();
+            const firstAlert: AlertLog = {
+              id: uid("al"),
+              eventId: callup.eventId,
+              kind: "first",
+              at: moment,
+            };
+            const notice: InboxItem = {
               id: uid("in"),
               kind: "recordatorio",
               title: "Segunda alerta de convocatoria",
               body: `Todavía no confirmaste ${event.title}.`,
               eventId: event.id,
               audience: "pending",
-              at,
+              at: moment,
               readBy: [],
             };
-            alertLog = [...alertLog, log];
-            inbox = [...inbox, item];
-            changed = true;
+            alertsSent = [...alertsSent, firstAlert];
+            notices = [...notices, notice];
+            somethingChanged = true;
             void notifyApp({
-              body: item.body,
+              body: notice.body,
               tag: `vestuario-r1-${event.id}`,
               eventId: event.id,
             });
           }
-          if (
-            hours >= secondHours &&
-            !alertLog.some((a) => a.eventId === conv.eventId && a.kind === "second")
-          ) {
-            const at = new Date().toISOString();
-            const log: AlertLog = { id: uid("al"), eventId: conv.eventId, kind: "second", at };
-            const item: InboxItem = {
+
+          // Segundo recordatorio: se lo ve el DT, para reclamar por WhatsApp.
+          if (hoursSinceCallup >= secondHours && !alreadySentSecond) {
+            const moment = new Date().toISOString();
+            const secondAlert: AlertLog = {
+              id: uid("al"),
+              eventId: callup.eventId,
+              kind: "second",
+              at: moment,
+            };
+            const notice: InboxItem = {
               id: uid("in"),
               kind: "recordatorio",
               title: "Pendientes para WhatsApp",
               body: `Pasaron ${secondHours} h sin respuesta en ${event.title}.`,
               eventId: event.id,
               audience: "staff",
-              at,
+              at: moment,
               readBy: [],
             };
-            alertLog = [...alertLog, log];
-            inbox = [...inbox, item];
-            changed = true;
+            alertsSent = [...alertsSent, secondAlert];
+            notices = [...notices, notice];
+            somethingChanged = true;
           }
         }
-        if (changed) set({ inbox, alertLog });
+
+        if (somethingChanged) set({ inbox: notices, alertLog: alertsSent });
       },
-      markInboxRead: (id) => {
-        const { activeId, inbox } = get();
+
+      // Marca un aviso como leído por la persona que está usando la app.
+      markInboxRead: (noticeId) => {
+        const currentPersonId = get().activeId;
         set({
-          inbox: inbox.map((item) =>
-            item.id === id && !item.readBy.includes(activeId)
-              ? { ...item, readBy: [...item.readBy, activeId] }
-              : item,
+          inbox: get().inbox.map((notice) =>
+            notice.id === noticeId && !notice.readBy.includes(currentPersonId)
+              ? { ...notice, readBy: [...notice.readBy, currentPersonId] }
+              : notice,
           ),
         });
       },
+
+      // Marca como leídos todos los avisos que esta persona puede ver.
       markAllRead: () => {
         const { activeId, inbox, members, rsvps } = get();
-        const me = members.find((m) => m.id === activeId);
-        if (!me) return;
+        const currentPerson = members.find((person) => person.id === activeId);
+        if (!currentPerson) return;
         set({
-          inbox: inbox.map((item) =>
-            inboxVisible(item, me, rsvps) && !item.readBy.includes(activeId)
-              ? { ...item, readBy: [...item.readBy, activeId] }
-              : item,
+          inbox: inbox.map((notice) =>
+            inboxVisible(notice, currentPerson, rsvps) && !notice.readBy.includes(activeId)
+              ? { ...notice, readBy: [...notice.readBy, activeId] }
+              : notice,
           ),
         });
       },
-      importSnapshot: (raw) => {
-        const parsed = parseSnapshot(raw);
-        if (!parsed) return false;
-        set({ ...parsed, hydrated: true, reminder: parsed.reminder ?? null });
+
+      // Recupera una copia guardada del equipo. Devuelve false si el archivo no sirve.
+      importSnapshot: (rawFile) => {
+        const parsedTeam = parseSnapshot(rawFile);
+        if (!parsedTeam) return false;
+        set({ ...parsedTeam, hydrated: true, reminder: parsedTeam.reminder ?? null });
         return true;
       },
-      cederMando: (targetId) => {
+
+      // El DT o el ayudante cambia de puesto con otra persona.
+      cederMando: (otherPersonId) => {
         const { members, activeId } = get();
-        const me = members.find((m) => m.id === activeId);
-        const target = members.find((m) => m.id === targetId);
-        if (!me || !target) return;
-        if (me.role === "jugador") return;
-        const myRole = me.role;
+        const currentPerson = members.find((person) => person.id === activeId);
+        const otherPerson = members.find((person) => person.id === otherPersonId);
+        if (!currentPerson || !otherPerson) return;
+        if (currentPerson.role === "jugador") return;
+        const roleIHaveNow = currentPerson.role;
         set({
-          members: members.map((m) => {
-            if (m.id === me.id) return { ...m, role: target.role };
-            if (m.id === target.id) return { ...m, role: myRole };
-            return m;
+          members: members.map((person) => {
+            if (person.id === currentPerson.id) return { ...person, role: otherPerson.role };
+            if (person.id === otherPerson.id) return { ...person, role: roleIHaveNow };
+            return person;
           }),
-          activeId: me.id,
+          activeId: currentPerson.id,
         });
       },
+
+      // Cambia el nombre del equipo. Solo quien lo creó.
       setClubName: (name) => {
         if (!isCreatorId(get())) return;
-        const trimmed = sanitizeName(name);
-        if (!trimmed) return;
+        const cleanName = sanitizeName(name);
+        if (!cleanName) return;
         const club = get().club;
         if (!club) return;
-        set({ club: { ...club, name: trimmed } });
+        set({ club: { ...club, name: cleanName } });
       },
+
+      // Suma un jugador al plantel y le deja un código corto.
+      // También lo anota como "pendiente" en los partidos que ya existen.
       invitePlayer: (input) => {
         if (!isCreatorId(get())) return null;
-        const name = sanitizeName(input.name);
-        const nick = sanitizeName(input.nick) || name.split(" ")[0] || "Jugador";
-        if (!name) return null;
-        const id = uid("j");
-        const code = uid("FJ").replace("FJ-", "").slice(0, 4).toUpperCase();
-        const member: Member = {
-          id,
-          name,
+        const fullName = sanitizeName(input.name);
+        const nick = sanitizeName(input.nick) || fullName.split(" ")[0] || "Jugador";
+        if (!fullName) return null;
+        const personId = uid("j");
+        const personalCode = uid("FJ").replace("FJ-", "").slice(0, 4).toUpperCase();
+        const newPlayer: Member = {
+          id: personId,
+          name: fullName,
           nick,
           role: "jugador",
           number: input.number,
         };
-        const extra = get().events.map((event) => ({
+        const pendingAnswers = get().events.map((event) => ({
           eventId: event.id,
-          memberId: id,
+          memberId: personId,
           status: "pendiente" as const,
         }));
         const invite: Invite = {
           id: uid("inv"),
-          memberId: id,
-          code,
+          memberId: personId,
+          code: personalCode,
           createdAt: new Date().toISOString(),
         };
         set({
-          members: [...get().members, member],
-          rsvps: [...get().rsvps, ...extra],
+          members: [...get().members, newPlayer],
+          rsvps: [...get().rsvps, ...pendingAnswers],
           invites: [...get().invites, invite],
         });
-        return code;
+        return personalCode;
       },
+
+      // Cambia el puesto de una persona. Si el puesto nuevo es DT o ayudante,
+      // quien lo tenía pasa a jugador. Solo hay un DT y un ayudante.
       assignRole: (memberId, role) => {
         if (!isCreatorId(get())) return;
         const { members } = get();
-        if (!members.some((m) => m.id === memberId)) return;
+        if (!members.some((person) => person.id === memberId)) return;
         set({
-          members: members.map((m) => {
-            if (m.id === memberId) return { ...m, role };
-            if (role !== "jugador" && m.role === role) return { ...m, role: "jugador" };
-            return m;
+          members: members.map((person) => {
+            if (person.id === memberId) return { ...person, role };
+            if (role !== "jugador" && person.role === role) return { ...person, role: "jugador" };
+            return person;
           }),
         });
       },
+
+      // Guarda el resultado y los números de cada jugador en ese partido.
+      // Si ya había planilla, la reemplaza.
       saveMatchSheet: (input) => {
         if (!isStaffId(get())) return;
-        const players: PlayerMatchStat[] = input.players.map((row) => ({
+        const playerStats: PlayerMatchStat[] = input.players.map((row) => ({
           memberId: row.memberId,
           goals: clampStat(row.goals),
           assists: clampStat(row.assists),
@@ -480,36 +556,44 @@ export const useFija = create<State>()(
           goalsAgainst: clampStat(input.goalsAgainst),
           notes: sanitizeText(input.notes, 400),
           recordedAt: new Date().toISOString(),
-          players,
+          players: playerStats,
         };
-        const rest = get().matchSheets.filter((s) => s.eventId !== sheet.eventId);
-        set({ matchSheets: [...rest, sheet] });
+        const otherSheets = get().matchSheets.filter((saved) => saved.eventId !== sheet.eventId);
+        set({ matchSheets: [...otherSheets, sheet] });
       },
+
+      // Abre un torneo. No puede haber dos abiertos al mismo tiempo.
       createTournament: (name) => {
         if (!isStaffId(get())) return;
-        if (get().tournaments.some((t) => t.status === "active")) return;
-        const label = sanitizeName(name);
-        if (!label) return;
+        if (get().tournaments.some((tournament) => tournament.status === "active")) return;
+        const tournamentName = sanitizeName(name);
+        if (!tournamentName) return;
         const tournament: Tournament = {
           id: uid("tor"),
-          name: label,
+          name: tournamentName,
           startedAt: new Date().toISOString(),
           endedAt: null,
           status: "active",
         };
         set({ tournaments: [...get().tournaments, tournament] });
       },
+
+      // Cierra el torneo. Los partidos viejos siguen contando en el total del equipo.
       finishTournament: (id) => {
         if (!isStaffId(get())) return;
         set({
-          tournaments: get().tournaments.map((t) =>
-            t.id === id && t.status === "active"
-              ? { ...t, status: "finished", endedAt: new Date().toISOString() }
-              : t,
+          tournaments: get().tournaments.map((tournament) =>
+            tournament.id === id && tournament.status === "active"
+              ? { ...tournament, status: "finished", endedAt: new Date().toISOString() }
+              : tournament,
           ),
         });
       },
+
+      // El usuario aceptó o rechazó usar el GPS para marcar la cancha.
       setGpsConsent: (value) => set({ gpsConsent: value }),
+
+      // Nombre y apodo de quien usa el celular.
       setProfile: (profile) =>
         set({
           profile: {
@@ -517,24 +601,29 @@ export const useFija = create<State>()(
             nick: sanitizeName(profile.nick) || "Jugador",
           },
         }),
+
+      // Sale del equipo. Si era el creador, el mando pasa a otra persona.
+      // El equipo queda guardado para poder volver a entrar con el código.
       leaveClub: () => {
         const state = get();
         if (!state.club) return;
-        const remaining = state.members.filter((m) => m.id !== state.activeId);
+        const peopleWhoStay = state.members.filter((person) => person.id !== state.activeId);
         let club: Club = state.club;
-        let members = remaining;
-        if (club.createdBy === state.activeId && remaining[0]) {
-          const heir =
-            remaining.find((m) => m.role === "dt") ??
-            remaining.find((m) => m.role === "ayudante") ??
-            remaining[0];
-          club = { ...club, createdBy: heir.id };
-          members = remaining.map((m) =>
-            m.id === heir.id && m.role === "jugador" ? { ...m, role: "dt" } : m,
+        let members = peopleWhoStay;
+        if (club.createdBy === state.activeId && peopleWhoStay[0]) {
+          const nextOwner =
+            peopleWhoStay.find((person) => person.role === "dt") ??
+            peopleWhoStay.find((person) => person.role === "ayudante") ??
+            peopleWhoStay[0];
+          club = { ...club, createdBy: nextOwner.id };
+          members = peopleWhoStay.map((person) =>
+            person.id === nextOwner.id && person.role === "jugador"
+              ? { ...person, role: "dt" }
+              : person,
           );
         }
-        const parked = toBundle({ ...state, club, members });
-        const archived = upsertBundle(state.archivedClubs, parked);
+        const savedCopy = toBundle({ ...state, club, members });
+        const archived = upsertBundle(state.archivedClubs, savedCopy);
         set({
           ...emptyClubState(),
           archivedClubs: archived,
@@ -544,26 +633,29 @@ export const useFija = create<State>()(
           hydrated: true,
         });
       },
+      // Entra a un equipo con el código. Primero mira la nube. Si no hay red, usa la copia local.
       joinClub: async (code) => {
         const state = get();
         if (state.club) return false;
-        const key = sanitizeCode(code);
-        if (!key) return false;
+        const inviteCode = sanitizeCode(code);
+        if (!inviteCode) return false;
         set({ cloudStatus: "syncing" });
-        let found =
-          state.archivedClubs.find((b) => b.club.inviteCode.toUpperCase() === key) ??
-          openClubs().find((b) => b.club.inviteCode.toUpperCase() === key) ??
+
+        let teamFound =
+          state.archivedClubs.find((saved) => saved.club.inviteCode.toUpperCase() === inviteCode) ??
+          openClubs().find((saved) => saved.club.inviteCode.toUpperCase() === inviteCode) ??
           null;
         try {
-          const remote = await loadClubDoc({ data: key });
-          if (remote) found = remote;
+          const remoteTeam = await loadClubDoc({ data: inviteCode });
+          if (remoteTeam) teamFound = remoteTeam;
         } catch {
-          /* local fallback */
+          // Si la nube no responde, se usa la copia de arriba.
         }
-        if (!found) {
+        if (!teamFound) {
           set({ cloudStatus: "off" });
           return false;
         }
+
         const me: Member = {
           id: GUEST_ID,
           name: state.profile.name || "Jugador",
@@ -571,13 +663,13 @@ export const useFija = create<State>()(
           role: "jugador",
           number: null,
         };
-        const members = found.members.some((m) => m.id === me.id)
-          ? found.members
-          : [...found.members, me];
+        const members = teamFound.members.some((person) => person.id === me.id)
+          ? teamFound.members
+          : [...teamFound.members, me];
         set({
-          ...found,
+          ...teamFound,
           members,
-          archivedClubs: state.archivedClubs.filter((b) => b.club.id !== found.club.id),
+          archivedClubs: state.archivedClubs.filter((saved) => saved.club.id !== teamFound.club.id),
           profile: state.profile,
           gpsConsent: state.gpsConsent,
           activeId: me.id,
@@ -588,11 +680,13 @@ export const useFija = create<State>()(
         void get().flushCloud();
         return true;
       },
+
+      // Crea un equipo nuevo. Quien lo crea queda como DT y recibe un código.
       createClub: (name) => {
         const state = get();
         if (state.club) return;
-        const label = sanitizeName(name);
-        if (!label) return;
+        const teamName = sanitizeName(name);
+        if (!teamName) return;
         const me: Member = {
           id: GUEST_ID,
           name: state.profile.name || "DT",
@@ -602,7 +696,7 @@ export const useFija = create<State>()(
         };
         const club: Club = {
           id: uid("club"),
-          name: label,
+          name: teamName,
           createdBy: me.id,
           inviteCode: uid("EQ").replace("EQ-", "").slice(0, 5).toUpperCase(),
         };
@@ -618,6 +712,8 @@ export const useFija = create<State>()(
         });
         void get().flushCloud();
       },
+
+      // Baja de la nube la última copia del equipo en el que ya estoy.
       syncFromCloud: async () => {
         const club = get().club;
         if (!club) {
@@ -626,17 +722,16 @@ export const useFija = create<State>()(
         }
         set({ cloudStatus: "syncing" });
         try {
-          const remote = await loadClubDoc({ data: club.inviteCode });
-          if (remote) {
-            const activeId = get().activeId;
+          const remoteTeam = await loadClubDoc({ data: club.inviteCode });
+          if (remoteTeam) {
+            const currentPersonId = get().activeId;
+            const stillOnTheTeam = remoteTeam.members.some((person) => person.id === currentPersonId);
             set({
-              ...remote,
+              ...remoteTeam,
               profile: get().profile,
               gpsConsent: get().gpsConsent,
               archivedClubs: get().archivedClubs,
-              activeId: remote.members.some((m) => m.id === activeId)
-                ? activeId
-                : (remote.members[0]?.id ?? activeId),
+              activeId: stillOnTheTeam ? currentPersonId : (remoteTeam.members[0]?.id ?? currentPersonId),
               hydrated: true,
               cloudStatus: "ok",
             });
@@ -647,6 +742,8 @@ export const useFija = create<State>()(
           set({ cloudStatus: "off" });
         }
       },
+
+      // Sube el equipo a la nube usando el código como llave.
       flushCloud: async () => {
         const state = get();
         if (!state.club) return;
@@ -662,6 +759,8 @@ export const useFija = create<State>()(
           set({ cloudStatus: "off" });
         }
       },
+
+      // Vuelve al celular vacío, sin equipo cargado.
       resetDemo: () => {
         set({ ...blank, hydrated: true, cloudStatus: "idle" });
       },
@@ -735,15 +834,18 @@ if (typeof window !== "undefined") {
   });
 }
 
+// True si la persona actual es DT o ayudante. Ellos editan cancha y planilla.
 function isStaffId(state: { members: Member[]; activeId: string }): boolean {
   const me = state.members.find((m) => m.id === state.activeId);
   return me?.role === "dt" || me?.role === "ayudante";
 }
 
+// True si la persona actual es quien creó el equipo.
 function isCreatorId(state: { club: Club | null; activeId: string }): boolean {
   return Boolean(state.club && state.club.createdBy === state.activeId);
 }
 
+// Arma el paquete que se sube a la nube. No incluye el perfil personal ni el GPS.
 function toBundle(state: {
   club: Club;
   members: Member[];
@@ -776,11 +878,13 @@ function toBundle(state: {
   };
 }
 
+// Guarda o reemplaza un equipo en la lista de equipos archivados.
 function upsertBundle(list: ClubBundle[], next: ClubBundle): ClubBundle[] {
   const rest = list.filter((b) => b.club.id !== next.club.id && b.club.inviteCode !== next.club.inviteCode);
   return [...rest, next];
 }
 
+// Cambia la respuesta de una persona en un evento, o la crea si no existía.
 function upsertRsvp(
   rsvps: State["rsvps"],
   eventId: string,
@@ -892,6 +996,7 @@ async function queueSync(tag: string) {
   }
 }
 
+// Dice si un aviso le corresponde a esta persona.
 export function inboxVisible(
   item: InboxItem,
   me: Member,
@@ -913,6 +1018,7 @@ export const GUEST: Member = {
   number: null,
 };
 
+// La persona que está usando la app en este momento.
 export function useMe(): Member {
   return useFija((s) => {
     const found = s.members.find((m) => m.id === s.activeId);
