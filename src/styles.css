@@ -1,0 +1,113 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --color-void: #050705;
+  --color-bg: #070b08;
+  --color-surface: #111814;
+  --color-surface-2: #18241c;
+  --color-fg: #eef7f0;
+  --color-muted: #8fa394;
+  --color-subtle: #5d6e62;
+  --color-accent: #2ee56a;
+  --color-accent-fg: #06210f;
+  --color-border: #243328;
+  --color-pitch: #147a3a;
+  --color-pitch-top: #1a9a4a;
+  --color-pitch-deep: #0c5a2a;
+  --color-line: #d7f5e0;
+  --color-danger: #ff5c5c;
+  --color-warning: #f0c14a;
+  --color-success: #2ee56a;
+  --color-card: #111814;
+  --color-background: #070b08;
+  --color-foreground: #eef7f0;
+  --color-primary: #2ee56a;
+  --color-primary-foreground: #06210f;
+  --color-secondary: #18241c;
+  --color-secondary-foreground: #eef7f0;
+  --color-muted-foreground: #8fa394;
+  --color-destructive: #ff5c5c;
+  --color-input: #243328;
+  --color-ring: #2ee56a;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius: 14px;
+  --max-width-phone: 430px;
+  --shadow-card: 0 0 0 1px rgba(215, 245, 224, 0.06);
+  --shadow-pitch: inset 0 0 40px rgba(0, 0, 0, 0.28);
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea,
+  label {
+    touch-action: manipulation;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-void);
+    color: var(--color-fg);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-void);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+  }
+
+  .app-titlebar {
+    position: fixed;
+    left: env(titlebar-area-x, 0);
+    top: env(titlebar-area-y, 0);
+    width: env(titlebar-area-width, 100%);
+    height: env(titlebar-area-height, 0px);
+    z-index: 80;
+    -webkit-app-region: drag;
+    pointer-events: none;
+  }
+
+  @media (display-mode: window-controls-overlay) {
+    .app-titlebar {
+      pointer-events: auto;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

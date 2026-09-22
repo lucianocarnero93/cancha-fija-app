@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Cancha Fija">
+  <rect width="32" height="32" rx="8" fill="#070b08"/>
+  <path fill="#2EE56A" d="M16 3.4c-4.85 0-8.8 3.75-8.8 8.45 0 6.35 8.8 16.4 8.8 16.4s8.8-10.05 8.8-16.4c0-4.7-3.95-8.45-8.8-8.45z"/>
+  <g fill="none" stroke="#06210F" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="11.15" y="6.5" width="9.7" height="12.2" rx="0.9" stroke-width="0.95"/>
+    <line x1="11.15" y1="12.6" x2="20.85" y2="12.6" stroke-width="0.85"/>
+    <circle cx="16" cy="12.6" r="1.85" stroke-width="0.85"/>
+    <rect x="13.15" y="6.5" width="5.7" height="2.15" stroke-width="0.75"/>
+    <rect x="13.15" y="16.55" width="5.7" height="2.15" stroke-width="0.75"/>
+  </g>
+</svg>

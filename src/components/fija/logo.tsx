@@ -1,0 +1,47 @@
+import { cn } from "@/lib/utils";
+
+export function LogoMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      className={cn("shrink-0", className)}
+      role="img"
+      aria-label="Cancha Fija"
+    >
+      <rect width="32" height="32" rx="8" className="fill-pitch-deep" />
+      <path
+        className="fill-accent"
+        d="M16 3.4c-4.85 0-8.8 3.75-8.8 8.45 0 6.35 8.8 16.4 8.8 16.4s8.8-10.05 8.8-16.4c0-4.7-3.95-8.45-8.8-8.45z"
+      />
+      <g className="stroke-accent-fg" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="11.15" y="6.5" width="9.7" height="12.2" rx="0.9" strokeWidth="0.95" />
+        <line x1="11.15" y1="12.6" x2="20.85" y2="12.6" strokeWidth="0.85" />
+        <circle cx="16" cy="12.6" r="1.85" strokeWidth="0.85" />
+        <rect x="13.15" y="6.5" width="5.7" height="2.15" strokeWidth="0.75" />
+        <rect x="13.15" y="16.55" width="5.7" height="2.15" strokeWidth="0.75" />
+      </g>
+    </svg>
+  );
+}
+
+export function BrandLockup({
+  kicker,
+  compact,
+}: {
+  kicker?: string;
+  compact?: boolean;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <LogoMark className={compact ? "size-8" : "size-10"} />
+      <div className="min-w-0">
+        {kicker ? (
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">{kicker}</p>
+        ) : null}
+        <p className={cn("truncate font-semibold leading-tight", compact ? "text-base" : "text-lg")}>
+          Cancha Fija
+        </p>
+      </div>
+    </div>
+  );
+}

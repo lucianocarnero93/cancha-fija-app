@@ -1,0 +1,225 @@
+{
+  "id": "/",
+  "name": "Cancha Fija",
+  "short_name": "Cancha Fija",
+  "description": "Organizá fútbol 5, 8, 9 y 11. Confirmá, alineá y chateá con el plantel.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "tabbed",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "orientation": "portrait",
+  "background_color": "#070b08",
+  "theme_color": "#070b08",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "categories": ["sports", "utilities"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "e58c174a-81d2-5c3c-32cc-34b8de4a52e9",
+  "scope_extensions": [],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
+  "tab_strip": {
+    "home_tab": {
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    "new_tab_button": {
+      "url": "/agenda",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  },
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/narrow-home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Inicio: próximo llamado y confirmación"
+    },
+    {
+      "src": "/screenshots/narrow-cancha.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Pizarra táctica de fútbol 5, 8, 9 y 11"
+    },
+    {
+      "src": "/screenshots/narrow-equipo.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Plantel y ceder mando"
+    },
+    {
+      "src": "/screenshots/wide-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Inicio en escritorio"
+    },
+    {
+      "src": "/screenshots/wide-cancha.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pizarra en escritorio"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "short_name": "Inicio",
+      "description": "Próximo llamado y confirmación",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Agenda",
+      "short_name": "Agenda",
+      "description": "Fechas, entrenos y reuniones",
+      "url": "/agenda",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Cancha",
+      "short_name": "Cancha",
+      "description": "Pizarra táctica y alineación",
+      "url": "/cancha",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Chat",
+      "short_name": "Chat",
+      "description": "Mensajes del plantel",
+      "url": "/chat",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Equipo",
+      "short_name": "Equipo",
+      "description": "Plantel y cuerpo técnico",
+      "url": "/equipo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/json": [".json", ".cancha.json"]
+      },
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "share_target": {
+    "action": "/chat",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+canchafija",
+      "url": "/?protocol=%s"
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Próximo partido",
+      "short_name": "Partido",
+      "description": "Próximo llamado de Cancha Fija con lugar y confirmados.",
+      "tag": "cancha-fija-next-match",
+      "template": "cancha-fija-next-match",
+      "ms_ac_template": "/widgets/next-match-template.json",
+      "data": "/widgets/next-match-data.json",
+      "type": "application/json",
+      "auth": false,
+      "update": 3600,
+      "screenshots": [
+        {
+          "src": "/widgets/next-match.png",
+          "sizes": "600x400",
+          "label": "Widget del próximo partido"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icon-16.png",
+          "sizes": "16x16"
+        },
+        {
+          "src": "/icon-48.png",
+          "sizes": "48x48"
+        },
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
