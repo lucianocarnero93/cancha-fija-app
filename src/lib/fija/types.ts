@@ -36,6 +36,7 @@ export type Club = {
   name: string;
   createdBy: string;
   inviteCode: string;
+  crest: string | null;
 };
 
 export type Tournament = {

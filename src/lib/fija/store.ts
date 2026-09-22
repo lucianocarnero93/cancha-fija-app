@@ -68,6 +68,7 @@ type State = ReturnType<typeof createSeed> & {
   importSnapshot: (raw: unknown) => boolean;
   cederMando: (targetId: string) => void;
   setClubName: (name: string) => void;
+  setClubCrest: (crest: string | null) => void;
   invitePlayer: (input: { name: string; nick: string; number: number | null }) => string | null;
   assignRole: (memberId: string, role: Role) => void;
   saveMatchSheet: (sheet: Omit<MatchSheet, "recordedAt">) => void;
@@ -76,7 +77,7 @@ type State = ReturnType<typeof createSeed> & {
   setGpsConsent: (value: GpsConsent) => void;
   leaveClub: () => void;
   joinClub: (code: string) => Promise<boolean>;
-  createClub: (name: string) => void;
+  createClub: (name: string, crest?: string | null) => void;
   setProfile: (profile: { name: string; nick: string }) => void;
   syncFromCloud: () => Promise<void>;
   flushCloud: () => Promise<void>;
@@ -493,6 +494,17 @@ export const useFija = create<State>()(
         set({ club: { ...club, name: cleanName } });
       },
 
+      // El DT o el ayudante cambian el escudo. La foto ya viene achicada.
+      setClubCrest: (crest) => {
+        if (!isStaffId(get())) return;
+        const club = get().club;
+        if (!club) return;
+        const safe =
+          crest && crest.startsWith("data:image/") && crest.length < 120_000 ? crest : null;
+        set({ club: { ...club, crest: safe } });
+        void get().flushCloud();
+      },
+
       // Suma un jugador al plantel y le deja un código corto.
       // También lo anota como "pendiente" en los partidos que ya existen.
       invitePlayer: (input) => {
@@ -689,7 +701,7 @@ export const useFija = create<State>()(
       },
 
       // Crea un equipo nuevo. Quien lo crea queda como DT y recibe un código.
-      createClub: (name) => {
+      createClub: (name, crest) => {
         const state = get();
         if (state.club) return;
         const teamName = sanitizeName(name);
@@ -706,6 +718,7 @@ export const useFija = create<State>()(
           name: teamName,
           createdBy: me.id,
           inviteCode: uid("EQ").replace("EQ-", "").slice(0, 5).toUpperCase(),
+          crest: crest && crest.startsWith("data:image/") ? crest : null,
         };
         set({
           ...emptyClubState(),
@@ -925,6 +938,10 @@ function parseSnapshot(raw: unknown): Partial<ReturnType<typeof createSeed>> | n
               typeof data.club.inviteCode === "string"
                 ? data.club.inviteCode
                 : seedData.club!.inviteCode,
+            crest:
+              typeof data.club.crest === "string" && data.club.crest.startsWith("data:image/")
+                ? data.club.crest
+                : null,
           }
         : seedData.club;
   const events = (data.events as ClubEvent[]).map((event) => ({

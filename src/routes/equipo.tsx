@@ -2,7 +2,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { InviteShareButton } from "@/components/fija/invite-share";
-import { LogoMark } from "@/components/fija/logo";
+import { CrestPicker, TeamCrest } from "@/components/fija/team-crest";
 import {
   CardRow,
   MyNumbers,
@@ -28,6 +28,7 @@ function EquipoPage() {
   const staff = useIsStaff();
   const creator = useIsCreator();
   const club = useFija((s) => s.club);
+  const setClubCrest = useFija((s) => s.setClubCrest);
   const members = useFija((s) => s.members);
   const sheets = useFija((s) => s.matchSheets);
   const record = teamRecord(sheets);
@@ -44,12 +45,17 @@ function EquipoPage() {
   return (
     <main className="px-4 py-5">
       <div className="flex items-center gap-3">
-        <LogoMark className="size-14" />
+        <TeamCrest src={club?.crest} name={club?.name} className="size-14 text-xl" />
         <div>
           <h1 className="text-3xl font-semibold">{club?.name ?? "Equipo"}</h1>
           <p className="text-sm text-muted">Cuerpo técnico, plantel y estadísticas.</p>
         </div>
       </div>
+      {staff ? (
+        <div className="mt-4">
+          <CrestPicker src={club?.crest} name={club?.name} onChange={setClubCrest} />
+        </div>
+      ) : null}
 
       {staff || creator ? (
         <div className="mt-4">

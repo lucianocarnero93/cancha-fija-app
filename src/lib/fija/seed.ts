@@ -382,7 +382,7 @@ export function emptyClubState() {
 export function openClubs(): ClubBundle[] {
   return [
     {
-      club: { id: "club-bajo", name: "Los del Bajo", createdBy: "b-dt", inviteCode: "BAJO" },
+      club: { id: "club-bajo", name: "Los del Bajo", createdBy: "b-dt", inviteCode: "BAJO", crest: null },
       members: [
         { id: "b-dt", name: "Diego Luna", nick: "Diegote", role: "dt", number: null },
         { id: "b-ayu", name: "Lara Pérez", nick: "Lara", role: "ayudante", number: null },
@@ -442,7 +442,7 @@ export function openClubs(): ClubBundle[] {
 export function createSeed(): Omit<AppState, "hydrated"> {
   const callups = seedCallups();
   return {
-    club: { id: "club-1", name: TEAM_NAME, createdBy: "dt", inviteCode: "FIJOS" },
+    club: { id: "club-1", name: TEAM_NAME, createdBy: "dt", inviteCode: "FIJOS", crest: null },
     members: MEMBERS,
     events: EVENTS,
     rsvps: seedRsvps(),

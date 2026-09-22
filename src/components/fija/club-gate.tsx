@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFija } from "@/lib/fija/store";
 import { LogoMark } from "./logo";
+import { CrestPicker } from "./team-crest";
 
 export function ClubGate() {
   const joinClub = useFija((s) => s.joinClub);
@@ -13,6 +14,7 @@ export function ClubGate() {
   const [mode, setMode] = useState<"join" | "create">("join");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [crest, setCrest] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [nick, setNick] = useState(profile.nick);
   const [fullName, setFullName] = useState(profile.name);
@@ -94,7 +96,7 @@ export function ClubGate() {
           onSubmit={(e) => {
             e.preventDefault();
             setProfile({ name: fullName, nick });
-            createClub(name);
+            createClub(name, crest);
           }}
         >
           <Label htmlFor="gate-club">Nombre del equipo</Label>
@@ -106,6 +108,7 @@ export function ClubGate() {
             placeholder="Nombre del equipo"
             required
           />
+          <CrestPicker src={crest} name={name} onChange={setCrest} />
           <Button type="submit" className="h-14 w-full text-base">
             Crear y ser DT
           </Button>

@@ -11,6 +11,7 @@ import { BrandLockup } from "./logo";
 import { PushBanner } from "./push-banner";
 import { PwaRegister } from "./pwa-register";
 import { SignInPanel } from "./sign-in-panel";
+import { TeamCrest } from "./team-crest";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: House, exact: true },
@@ -87,9 +88,12 @@ function AppBar() {
           </Link>
         </div>
       </div>
-      <p className="mt-2 text-xs text-muted">
-        {club?.name ?? "Sin equipo"} · {me.nick} · {ROLE_LABEL[me.role]}
-      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <TeamCrest src={club?.crest} name={club?.name} className="size-8 text-xs" />
+        <p className="text-xs text-muted">
+          {club?.name ?? "Sin equipo"} · {me.nick} · {ROLE_LABEL[me.role]}
+        </p>
+      </div>
     </header>
   );
 }
