@@ -26,14 +26,18 @@ npm run build
 
 `public/manifest.json` cubre los miembros que pide PWABuilder:
 
-| Miembro | Qué hace acá |
+| Miembro | Valor |
 |---|---|
-| Service worker `public/sw.js` | Offline, intercepta GET, push, background sync, periodic sync |
-| `screenshots` | Capturas narrow (1080×1920) y wide (1280×720) |
-| `prefer_related_applications` | `false`: se instala esta web app, no una nativa |
-| `related_applications` | Array vacío (no hay ficha de store todavía) |
+| `id` | `/cancha-fija` — estable, no depende de `start_url` |
+| `background_color` / `theme_color` | `#070b08` |
+| `orientation` | `portrait` |
+| `lang` / `dir` | `es-AR` / `ltr` |
+| `scope` | `/` |
+| `categories` | `sports`, `utilities` |
+| `screenshots` | 3 narrow (1080×1920) + 2 wide (1280×720) |
 | `iarc_rating_id` | UUID de ejemplo de PWABuilder. Reemplazalo por el certificado real de [IARC](https://www.globalratings.com/) |
 | `display_override` | `window-controls-overlay` → `tabbed` → `standalone` |
+| `edge_side_panel` | Panel lateral de Edge, ancho preferido 430 |
 | `scope_extensions` | Array vacío (un solo origen) |
 | `launch_handler` | Reusa la instancia abierta (`focus-existing`) |
 | `shortcuts` | Inicio, Agenda, Cancha, Chat, Equipo |
@@ -41,6 +45,7 @@ npm run build
 | `share_target` | Recibe texto/URL en el chat (`GET /chat`) |
 | `widgets` | Widget Adaptive Card “Próximo partido” (Windows) |
 | `protocol_handlers` | `web+canchafija://` abre la app |
-| `tab_strip` | Modo con pestañas en desktop |
+| `tab_strip` | Modo con pestañas en escritorio |
+| Service worker `public/sw.js` | Offline, intercepta GET, push, background sync |
 
-También: `display: standalone`, `orientation: portrait`, recordatorios con `Notification`, viewport sin pellizco y `touch-action: manipulation`.
+También: `display: standalone`, recordatorios con `Notification`, viewport sin pellizco y `touch-action: manipulation`.

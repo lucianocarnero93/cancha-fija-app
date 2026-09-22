@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "/cancha-fija",
   "name": "Cancha Fija",
   "short_name": "Cancha Fija",
   "description": "Organizá fútbol 5, 8, 9 y 11. Confirmá, alineá y chateá con el plantel.",
@@ -23,6 +23,9 @@
   "related_applications": [],
   "iarc_rating_id": "e58c174a-81d2-5c3c-32cc-34b8de4a52e9",
   "scope_extensions": [],
+  "edge_side_panel": {
+    "preferred_width": 430
+  },
   "launch_handler": {
     "client_mode": ["focus-existing", "navigate-existing", "auto"]
   },
