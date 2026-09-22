@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { authMiddleware } from "@/lib/auth/middleware";
 import { sanitizeCode } from "./sanitize";
 import type { ClubBundle } from "./types";
 
@@ -14,6 +15,7 @@ function asBundle(value: unknown): ClubBundle | null {
 }
 
 export const loadClubDoc = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
   .validator((code: string) => sanitizeCode(code))
   .handler(async ({ data: code }): Promise<ClubBundle | null> => {
     if (!code) return null;
@@ -39,6 +41,7 @@ export const loadClubDoc = createServerFn({ method: "GET" })
   });
 
 export const saveClubDoc = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((input: { code: string; bundle: ClubBundle }) => ({
     code: sanitizeCode(input.code),
     bundle: input.bundle,

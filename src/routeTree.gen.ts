@@ -14,10 +14,12 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as CanchaRouteImport } from './routes/cancha'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as EquipoRouteImport } from './routes/equipo'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as SeguridadRouteImport } from './routes/seguridad'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TiendasRouteImport } from './routes/tiendas'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,6 +46,11 @@ const EquipoRoute = EquipoRouteImport.update({
   path: '/equipo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacidadRoute = PrivacidadRouteImport.update({
   id: '/privacidad',
   path: '/privacidad',
@@ -64,6 +71,11 @@ const TiendasRoute = TiendasRouteImport.update({
   path: '/tiendas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,10 +83,12 @@ export interface FileRoutesByFullPath {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/login': typeof LoginRoute
   '/privacidad': typeof PrivacidadRoute
   '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
   '/tiendas': typeof TiendasRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -82,10 +96,12 @@ export interface FileRoutesByTo {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/login': typeof LoginRoute
   '/privacidad': typeof PrivacidadRoute
   '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
   '/tiendas': typeof TiendasRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,10 +110,12 @@ export interface FileRoutesById {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/login': typeof LoginRoute
   '/privacidad': typeof PrivacidadRoute
   '/seguridad': typeof SeguridadRoute
   '/stats': typeof StatsRoute
   '/tiendas': typeof TiendasRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,10 +125,12 @@ export interface FileRouteTypes {
     | '/cancha'
     | '/chat'
     | '/equipo'
+    | '/login'
     | '/privacidad'
     | '/seguridad'
     | '/stats'
     | '/tiendas'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,10 +138,12 @@ export interface FileRouteTypes {
     | '/cancha'
     | '/chat'
     | '/equipo'
+    | '/login'
     | '/privacidad'
     | '/seguridad'
     | '/stats'
     | '/tiendas'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -129,10 +151,12 @@ export interface FileRouteTypes {
     | '/cancha'
     | '/chat'
     | '/equipo'
+    | '/login'
     | '/privacidad'
     | '/seguridad'
     | '/stats'
     | '/tiendas'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -141,10 +165,12 @@ export interface RootRouteChildren {
   CanchaRoute: typeof CanchaRoute
   ChatRoute: typeof ChatRoute
   EquipoRoute: typeof EquipoRoute
+  LoginRoute: typeof LoginRoute
   PrivacidadRoute: typeof PrivacidadRoute
   SeguridadRoute: typeof SeguridadRoute
   StatsRoute: typeof StatsRoute
   TiendasRoute: typeof TiendasRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacidad': {
       id: '/privacidad'
       path: '/privacidad'
@@ -212,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TiendasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -221,10 +261,12 @@ const rootRouteChildren: RootRouteChildren = {
   CanchaRoute: CanchaRoute,
   ChatRoute: ChatRoute,
   EquipoRoute: EquipoRoute,
+  LoginRoute: LoginRoute,
   PrivacidadRoute: PrivacidadRoute,
   SeguridadRoute: SeguridadRoute,
   StatsRoute: StatsRoute,
   TiendasRoute: TiendasRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

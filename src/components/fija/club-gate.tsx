@@ -10,7 +10,6 @@ export function ClubGate() {
   const createClub = useFija((s) => s.createClub);
   const profile = useFija((s) => s.profile);
   const setProfile = useFija((s) => s.setProfile);
-  const resetDemo = useFija((s) => s.resetDemo);
   const [mode, setMode] = useState<"join" | "create">("join");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -21,9 +20,9 @@ export function ClubGate() {
   return (
     <main className="flex min-h-dvh flex-col px-5 py-8">
       <LogoMark className="mx-auto size-28 shadow-card" />
-      <h1 className="mt-5 text-center text-3xl font-semibold">Sin equipo</h1>
+      <h1 className="mt-5 text-center text-3xl font-semibold">Tu vestuario</h1>
       <p className="mt-2 text-center text-sm text-muted">
-        Saliste del vestuario. Creá uno nuevo o entrá con un código.
+        Creá el equipo si sos el DT, o entrá con el código que te pasaron.
       </p>
 
       <div className="mt-6 space-y-3">
@@ -71,7 +70,7 @@ export function ClubGate() {
             e.preventDefault();
             setProfile({ name: fullName, nick });
             void joinClub(code).then((ok) => {
-              setError(ok ? "" : "Código inválido. Probá BAJO o el de tu DT.");
+              setError(ok ? "" : "Ese código no existe. Pedile el correcto al DT.");
             });
           }}
         >
@@ -81,7 +80,7 @@ export function ClubGate() {
             className="mt-1 uppercase tracking-widest"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="FIJOS"
+            placeholder="CÓDIGO"
             required
           />
           {error ? <p className="text-sm text-danger">{error}</p> : null}
@@ -104,7 +103,7 @@ export function ClubGate() {
             className="mt-1"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Los Fijos"
+            placeholder="Nombre del equipo"
             required
           />
           <Button type="submit" className="h-14 w-full text-base">
@@ -112,13 +111,6 @@ export function ClubGate() {
           </Button>
         </form>
       )}
-      <button
-        type="button"
-        className="mt-8 h-11 text-sm text-muted underline"
-        onClick={() => resetDemo()}
-      >
-        Volver al demo de Los Fijos
-      </button>
     </main>
   );
 }

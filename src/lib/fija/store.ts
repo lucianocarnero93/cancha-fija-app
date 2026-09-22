@@ -82,12 +82,18 @@ type State = ReturnType<typeof createSeed> & {
   resetDemo: () => void;
 };
 
-const seed = createSeed();
+const blank = {
+  ...emptyClubState(),
+  archivedClubs: [] as ReturnType<typeof createSeed>["archivedClubs"],
+  profile: { name: "", nick: "" },
+  gpsConsent: "unset" as const,
+  activeId: GUEST_ID,
+};
 
 export const useFija = create<State>()(
   persist(
     (set, get) => ({
-      ...seed,
+      ...blank,
       hydrated: false,
       cloudStatus: "idle" as CloudStatus,
       setHydrated: () => set({ hydrated: true }),
@@ -635,12 +641,11 @@ export const useFija = create<State>()(
         }
       },
       resetDemo: () => {
-        set({ ...createSeed(), hydrated: true, cloudStatus: "idle" });
-        void get().flushCloud();
+        set({ ...blank, hydrated: true, cloudStatus: "idle" });
       },
     }),
     {
-      name: "mi-vestuario-v4",
+      name: "mi-vestuario-v6",
       skipHydration: true,
       storage: createJSONStorage(() => safeStorage),
       partialize: (s) => ({

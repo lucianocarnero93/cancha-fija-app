@@ -1,14 +1,16 @@
 import { CalendarDays, ChartColumn, House, Lock, MessageCircle, Shield, Users } from "lucide-react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { ROLE_LABEL } from "@/lib/fija/format";
 import { useFija, useMe } from "@/lib/fija/store";
 import { cn } from "@/lib/utils";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { ClubGate } from "./club-gate";
 import { InboxBell } from "./inbox-bell";
 import { BrandLockup } from "./logo";
 import { PushBanner } from "./push-banner";
 import { PwaRegister } from "./pwa-register";
+import { SignInPanel } from "./sign-in-panel";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: House, exact: true },
@@ -41,21 +43,31 @@ export function PhoneShell() {
       <PwaRegister />
       <div className="pitch-shell mx-auto flex min-h-dvh w-full max-w-phone flex-col shadow-card">
         <div className="grass-strip" aria-hidden="true" />
-        {hydrated && !club ? (
-          <ClubGate />
-        ) : (
-          <>
-            <AppBar />
-            <PushBanner />
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
-              <Outlet />
-            </div>
-            <BottomNav />
-          </>
-        )}
+        <AuthFrame>
+          {hydrated && !club ? (
+            <ClubGate />
+          ) : (
+            <>
+              <AppBar />
+              <PushBanner />
+              <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
+                <Outlet />
+              </div>
+              <BottomNav />
+            </>
+          )}
+        </AuthFrame>
       </div>
     </div>
   );
+}
+
+function AuthFrame({ children }: { children: ReactNode }) {
+  const { user, isPending } = useCurrentUserState();
+  if (isPending || !user) {
+    return <SignInPanel opening={isPending} />;
+  }
+  return children;
 }
 
 function AppBar() {

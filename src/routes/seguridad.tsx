@@ -1,11 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Segmented } from "@/components/fija/segmented";
 import { Button } from "@/components/ui/button";
-import { ROLE_TAB } from "@/lib/fija/format";
+import { UserButton } from "@/lib/auth/gates";
 import { queryGpsPermission, type GpsPermission } from "@/lib/fija/gps";
 import { useFija, useMe } from "@/lib/fija/store";
-import type { Role } from "@/lib/fija/types";
 
 export const Route = createFileRoute("/seguridad")({ component: SeguridadPage });
 
@@ -26,13 +24,8 @@ function SeguridadPage() {
   const cloudStatus = useFija((s) => s.cloudStatus);
   const flushCloud = useFija((s) => s.flushCloud);
   const syncFromCloud = useFija((s) => s.syncFromCloud);
-  const members = useFija((s) => s.members);
-  const viewAsRole = useFija((s) => s.viewAsRole);
-  const setActive = useFija((s) => s.setActive);
-  const resetDemo = useFija((s) => s.resetDemo);
   const [gps, setGps] = useState<GpsPermission>("unknown");
   const [leaving, setLeaving] = useState(false);
-  const players = members.filter((m) => m.role === "jugador");
 
   useEffect(() => {
     void queryGpsPermission().then(setGps);
@@ -122,37 +115,11 @@ function SeguridadPage() {
       </section>
 
       <section className="mt-4 rounded-xl bg-surface p-4 shadow-card">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Vista de prueba</h2>
-        <p className="mt-2 text-sm text-muted">
-          Solo para ensayar roles en este celular. No aparece en el inicio. En la tienda cada persona entra
-          con su código de equipo.
-        </p>
-        <Segmented
-          className="mt-3"
-          value={me.role}
-          onChange={(role) => viewAsRole(role)}
-          options={(["dt", "ayudante", "jugador"] as Role[]).map((role) => ({
-            id: role,
-            label: ROLE_TAB[role],
-          }))}
-        />
-        {me.role === "jugador" ? (
-          <select
-            className="mt-2 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-fg"
-            value={me.id}
-            onChange={(e) => setActive(e.target.value)}
-          >
-            {players.map((p) => (
-              <option key={p.id} value={p.id}>
-                Ves como {p.nick}
-                {p.number != null ? ` · ${p.number}` : ""}
-              </option>
-            ))}
-          </select>
-        ) : null}
-        <Button variant="ghost" className="mt-2 h-12 w-full" onClick={() => resetDemo()}>
-          Volver al equipo de ejemplo
-        </Button>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Cuenta</h2>
+        <p className="mt-2 text-sm text-muted">La sesión de Google de este celular.</p>
+        <div className="mt-3">
+          <UserButton />
+        </div>
       </section>
 
       {club ? (
