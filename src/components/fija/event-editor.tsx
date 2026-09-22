@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 import { fromDatetimeLocal, KIND_LABEL, toDatetimeLocal } from "@/lib/fija/format";
 import { MODALITY_SHORT, MODALITIES } from "@/lib/fija/formations";
 import { parseMapsInput } from "@/lib/fija/maps";
@@ -122,9 +121,13 @@ function EventDialog({
   const [mapsQuery, setMapsQuery] = useState(initial.mapsQuery);
   const [when, setWhen] = useState(initial.when);
   const [tournamentId, setTournamentId] = useState(initial.tournamentId);
+  const [newTournamentName, setNewTournamentName] = useState("");
   const tournaments = useFija((s) => s.tournaments);
+  const createTournament = useFija((s) => s.createTournament);
   const matchNeedsTournament = kind === "partido";
-  const canSaveMatch = !matchNeedsTournament || Boolean(tournamentId && tournaments.some((t) => t.id === tournamentId));
+  const activeOne = tournaments.find((tournament) => tournament.status === "active");
+  const canSaveMatch =
+    !matchNeedsTournament || Boolean(tournamentId && tournaments.some((t) => t.id === tournamentId));
 
   function reset() {
     setKind(initial.kind);
@@ -202,14 +205,7 @@ function EventDialog({
           {matchNeedsTournament ? (
             <div className="space-y-1.5">
               <Label>Torneo</Label>
-              {tournaments.length === 0 ? (
-                <p className="text-sm text-muted">
-                  Primero hay que crear el torneo. Sin torneo no se puede cargar un partido.{" "}
-                  <Link to="/stats" search={{ torneo: "general", partido: undefined }} className="font-semibold text-accent">
-                    Ir a estadísticas
-                  </Link>
-                </p>
-              ) : (
+              {tournaments.length > 0 ? (
                 <select
                   className="h-12 w-full rounded-md border border-border bg-bg px-3 text-sm"
                   value={tournamentId}
@@ -222,7 +218,32 @@ function EventDialog({
                     </option>
                   ))}
                 </select>
+              ) : (
+                <p className="text-sm text-muted">Todavía no hay un torneo. Creá uno para poder subir este partido.</p>
               )}
+              {!activeOne ? (
+                <div className="space-y-2 pt-1">
+                  <Input
+                    value={newTournamentName}
+                    onChange={(e) => setNewTournamentName(e.target.value)}
+                    placeholder="Apertura 2026"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-12 w-full"
+                    disabled={newTournamentName.trim().length < 2}
+                    onClick={() => {
+                      const createdId = createTournament(newTournamentName);
+                      if (!createdId) return;
+                      setTournamentId(createdId);
+                      setNewTournamentName("");
+                    }}
+                  >
+                    Crear torneo y usarlo en este partido
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
           <Button

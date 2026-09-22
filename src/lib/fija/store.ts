@@ -71,7 +71,7 @@ type State = ReturnType<typeof createSeed> & {
   invitePlayer: (input: { name: string; nick: string; number: number | null }) => string | null;
   assignRole: (memberId: string, role: Role) => void;
   saveMatchSheet: (sheet: Omit<MatchSheet, "recordedAt">) => void;
-  createTournament: (name: string) => void;
+  createTournament: (name: string) => string | null;
   finishTournament: (id: string) => void;
   setGpsConsent: (value: GpsConsent) => void;
   leaveClub: () => void;
@@ -568,11 +568,12 @@ export const useFija = create<State>()(
       },
 
       // Abre un torneo. No puede haber dos abiertos al mismo tiempo.
+      // Devuelve el id del torneo nuevo para poder asociarle el partido enseguida.
       createTournament: (name) => {
-        if (!isStaffId(get())) return;
-        if (get().tournaments.some((tournament) => tournament.status === "active")) return;
+        if (!isStaffId(get())) return null;
+        if (get().tournaments.some((tournament) => tournament.status === "active")) return null;
         const tournamentName = sanitizeName(name);
-        if (!tournamentName) return;
+        if (!tournamentName) return null;
         const tournament: Tournament = {
           id: uid("tor"),
           name: tournamentName,
@@ -581,6 +582,7 @@ export const useFija = create<State>()(
           status: "active",
         };
         set({ tournaments: [...get().tournaments, tournament] });
+        return tournament.id;
       },
 
       // Cierra el torneo. Los partidos viejos siguen contando en el total del equipo.
