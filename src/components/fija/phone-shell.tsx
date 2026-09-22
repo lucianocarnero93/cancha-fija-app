@@ -28,8 +28,10 @@ export function PhoneShell() {
   const hydrated = useFija((s) => s.hydrated);
 
   useEffect(() => {
-    void useFija.persist.rehydrate();
-    setHydrated();
+    void Promise.resolve(useFija.persist.rehydrate()).then(() => {
+      setHydrated();
+      void useFija.getState().syncFromCloud();
+    });
     tickAlerts();
     const id = window.setInterval(() => tickAlerts(), 30_000);
     return () => window.clearInterval(id);
@@ -72,6 +74,7 @@ function TestBar() {
       <div className="flex items-center justify-between gap-2">
         <BrandLockup kicker="Modo prueba" />
         <div className="flex items-center">
+          <CloudDot />
           <InboxBell />
           <Link to="/seguridad" className="grid size-11 place-items-center text-muted">
             <Lock className="size-4" />
@@ -110,6 +113,17 @@ function TestBar() {
         </p>
       )}
     </header>
+  );
+}
+
+function CloudDot() {
+  const status = useFija((s) => s.cloudStatus);
+  const label =
+    status === "ok" ? "Nube" : status === "syncing" ? "Subiendo" : status === "off" ? "Local" : "Nube";
+  return (
+    <span className={cn("mr-1 text-[10px] font-semibold uppercase tracking-widest", status === "ok" ? "text-accent" : "text-muted")}>
+      {label}
+    </span>
   );
 }
 

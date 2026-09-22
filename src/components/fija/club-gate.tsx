@@ -70,8 +70,9 @@ export function ClubGate() {
           onSubmit={(e) => {
             e.preventDefault();
             setProfile({ name: fullName, nick });
-            const ok = joinClub(code);
-            setError(ok ? "" : "Código inválido. Probá BAJO o el de tu DT.");
+            void joinClub(code).then((ok) => {
+              setError(ok ? "" : "Código inválido. Probá BAJO o el de tu DT.");
+            });
           }}
         >
           <Label htmlFor="gate-code">Código del vestuario</Label>

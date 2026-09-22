@@ -5,6 +5,7 @@ import { notifyApp, notifyReminder } from "./notify";
 import { createSeed, emptyClubState, GUEST_ID, openClubs } from "./seed";
 import { sanitizeCode, sanitizeName, sanitizeText } from "./sanitize";
 import { clampHours, hoursSince } from "./share";
+import { loadClubDoc, saveClubDoc } from "./cloud";
 import { clampStat, emptyStat } from "./stats";
 import { safeStorage } from "./storage";
 import type {
@@ -29,8 +30,11 @@ import type {
   Tournament,
 } from "./types";
 
+type CloudStatus = "idle" | "syncing" | "ok" | "off";
+
 type State = ReturnType<typeof createSeed> & {
   hydrated: boolean;
+  cloudStatus: CloudStatus;
   setHydrated: () => void;
   setActive: (id: string) => void;
   viewAsRole: (role: Role) => void;
@@ -70,9 +74,11 @@ type State = ReturnType<typeof createSeed> & {
   finishTournament: (id: string) => void;
   setGpsConsent: (value: GpsConsent) => void;
   leaveClub: () => void;
-  joinClub: (code: string) => boolean;
+  joinClub: (code: string) => Promise<boolean>;
   createClub: (name: string) => void;
   setProfile: (profile: { name: string; nick: string }) => void;
+  syncFromCloud: () => Promise<void>;
+  flushCloud: () => Promise<void>;
   resetDemo: () => void;
 };
 
@@ -83,6 +89,7 @@ export const useFija = create<State>()(
     (set, get) => ({
       ...seed,
       hydrated: false,
+      cloudStatus: "idle" as CloudStatus,
       setHydrated: () => set({ hydrated: true }),
       setActive: (id) => set({ activeId: id }),
       viewAsRole: (role) => {
@@ -509,15 +516,26 @@ export const useFija = create<State>()(
           hydrated: true,
         });
       },
-      joinClub: (code) => {
+      joinClub: async (code) => {
         const state = get();
         if (state.club) return false;
         const key = sanitizeCode(code);
         if (!key) return false;
-        const found =
+        set({ cloudStatus: "syncing" });
+        let found =
           state.archivedClubs.find((b) => b.club.inviteCode.toUpperCase() === key) ??
-          openClubs().find((b) => b.club.inviteCode.toUpperCase() === key);
-        if (!found) return false;
+          openClubs().find((b) => b.club.inviteCode.toUpperCase() === key) ??
+          null;
+        try {
+          const remote = await loadClubDoc({ data: key });
+          if (remote) found = remote;
+        } catch {
+          /* local fallback */
+        }
+        if (!found) {
+          set({ cloudStatus: "off" });
+          return false;
+        }
         const me: Member = {
           id: GUEST_ID,
           name: state.profile.name || "Jugador",
@@ -537,7 +555,9 @@ export const useFija = create<State>()(
           activeId: me.id,
           reminder: null,
           hydrated: true,
+          cloudStatus: "ok",
         });
+        void get().flushCloud();
         return true;
       },
       createClub: (name) => {
@@ -568,8 +588,56 @@ export const useFija = create<State>()(
           activeId: me.id,
           hydrated: true,
         });
+        void get().flushCloud();
       },
-      resetDemo: () => set({ ...createSeed(), hydrated: true }),
+      syncFromCloud: async () => {
+        const club = get().club;
+        if (!club) {
+          set({ cloudStatus: "ok" });
+          return;
+        }
+        set({ cloudStatus: "syncing" });
+        try {
+          const remote = await loadClubDoc({ data: club.inviteCode });
+          if (remote) {
+            const activeId = get().activeId;
+            set({
+              ...remote,
+              profile: get().profile,
+              gpsConsent: get().gpsConsent,
+              archivedClubs: get().archivedClubs,
+              activeId: remote.members.some((m) => m.id === activeId)
+                ? activeId
+                : (remote.members[0]?.id ?? activeId),
+              hydrated: true,
+              cloudStatus: "ok",
+            });
+          } else {
+            await get().flushCloud();
+          }
+        } catch {
+          set({ cloudStatus: "off" });
+        }
+      },
+      flushCloud: async () => {
+        const state = get();
+        if (!state.club) return;
+        try {
+          const result = await saveClubDoc({
+            data: {
+              code: state.club.inviteCode,
+              bundle: toBundle({ ...state, club: state.club }),
+            },
+          });
+          set({ cloudStatus: result.ok ? "ok" : "off" });
+        } catch {
+          set({ cloudStatus: "off" });
+        }
+      },
+      resetDemo: () => {
+        set({ ...createSeed(), hydrated: true, cloudStatus: "idle" });
+        void get().flushCloud();
+      },
     }),
     {
       name: "mi-vestuario-v4",
@@ -615,6 +683,30 @@ export const useFija = create<State>()(
     },
   ),
 );
+
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+if (typeof window !== "undefined") {
+  useFija.subscribe((state, prev) => {
+    if (!state.hydrated || !state.club) return;
+    if (
+      state.members === prev.members &&
+      state.events === prev.events &&
+      state.matchSheets === prev.matchSheets &&
+      state.messages === prev.messages &&
+      state.tournaments === prev.tournaments &&
+      state.rsvps === prev.rsvps &&
+      state.charla === prev.charla &&
+      state.inbox === prev.inbox &&
+      state.club === prev.club
+    ) {
+      return;
+    }
+    if (flushTimer) window.clearTimeout(flushTimer);
+    flushTimer = window.setTimeout(() => {
+      void useFija.getState().flushCloud();
+    }, 800) as unknown as ReturnType<typeof setTimeout>;
+  });
+}
 
 function isStaffId(state: { members: Member[]; activeId: string }): boolean {
   const me = state.members.find((m) => m.id === state.activeId);

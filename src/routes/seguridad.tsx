@@ -20,6 +20,9 @@ function SeguridadPage() {
   const setGpsConsent = useFija((s) => s.setGpsConsent);
   const leaveClub = useFija((s) => s.leaveClub);
   const club = useFija((s) => s.club);
+  const cloudStatus = useFija((s) => s.cloudStatus);
+  const flushCloud = useFija((s) => s.flushCloud);
+  const syncFromCloud = useFija((s) => s.syncFromCloud);
   const [gps, setGps] = useState<GpsPermission>("unknown");
   const [leaving, setLeaving] = useState(false);
 
@@ -69,10 +72,38 @@ function SeguridadPage() {
       </section>
 
       <section className="mt-4 rounded-xl bg-surface p-4 shadow-card">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Nube</h2>
+        <p className="mt-2 text-sm text-muted">
+          El vestuario se guarda en la base de la app publicada. En el celular queda una copia. Google
+          Firebase no se puede abrir desde acá; esta nube sale con la publicación.
+        </p>
+        <p className="mt-2 text-sm">
+          Estado:{" "}
+          {cloudStatus === "ok"
+            ? "sincronizado"
+            : cloudStatus === "syncing"
+              ? "subiendo"
+              : cloudStatus === "off"
+                ? "solo este celular"
+                : "en espera"}
+        </p>
+        <div className="mt-3 grid gap-2">
+          <Button variant="secondary" className="h-12" onClick={() => void syncFromCloud()}>
+            Traer de la nube
+          </Button>
+          {club ? (
+            <Button variant="outline" className="h-12" onClick={() => void flushCloud()}>
+              Guardar ahora
+            </Button>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="mt-4 rounded-xl bg-surface p-4 shadow-card">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted">Datos</h2>
         <p className="mt-2 text-sm text-muted">
-          El plantel vive en este celular. No mandamos GPS a un servidor. El chat se limpia de código extraño.
-          Solo DT y ayudante cargan planilla y pizarra.
+          El plantel vive en este celular y se copia a la nube. No mandamos GPS en vivo. El chat se limpia
+          de código extraño. Solo DT y ayudante cargan planilla y pizarra.
         </p>
         <Link to="/privacidad" className="mt-3 flex h-12 items-center font-semibold text-accent">
           Política de privacidad
