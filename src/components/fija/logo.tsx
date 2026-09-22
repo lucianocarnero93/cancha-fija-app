@@ -8,27 +8,18 @@ export function LogoMark({ className }: { className?: string }) {
       role="img"
       aria-label="Mi Vestuario App"
     >
-      <rect width="32" height="32" rx="8" className="fill-accent" />
-      <rect x="3.5" y="4.5" width="25" height="23" rx="3" className="fill-bg" />
-      <rect x="5.2" y="6.2" width="10.2" height="19.6" rx="1.4" className="fill-surface" />
-      <rect x="16.6" y="6.2" width="10.2" height="19.6" rx="1.4" className="fill-surface" />
-      <path
-        className="stroke-border"
-        strokeWidth="1.1"
-        d="M8.2 9.4h4.4M8.2 12.2h4.4M8.2 15h4.4M19.4 9.4h4.4M19.4 12.2h4.4M19.4 15h4.4"
-      />
-      <circle cx="14.2" cy="18.8" r="0.9" className="fill-accent" />
-      <circle cx="17.8" cy="18.8" r="0.9" className="fill-accent" />
-      <circle cx="16" cy="22.4" r="4.15" className="fill-fg" />
-      <polygon
-        className="fill-bg"
-        points="16,19.7 18.3,21.4 17.4,24.1 14.6,24.1 13.7,21.4"
-      />
-      <path
-        className="fill-none stroke-bg"
-        strokeWidth="0.7"
-        d="M16 19.7V18.3M18.3 21.4l1.5-.5M17.4 24.1l.6 1.4M14.6 24.1l-.6 1.4M13.7 21.4l-1.5-.5"
-      />
+      <rect width="32" height="32" rx="7" fill="#0b1c12" />
+      <rect x="4" y="6" width="10" height="20" rx="2" fill="#b8f25a" />
+      <rect x="18" y="6" width="10" height="20" rx="2" fill="#b8f25a" />
+      <rect x="6" y="8" width="6" height="2" rx="1" fill="#0b1c12" />
+      <rect x="6" y="12" width="6" height="2" rx="1" fill="#0b1c12" />
+      <rect x="20" y="8" width="6" height="2" rx="1" fill="#0b1c12" />
+      <rect x="20" y="12" width="6" height="2" rx="1" fill="#0b1c12" />
+      <circle cx="12" cy="22" r="1.5" fill="#0b1c12" />
+      <circle cx="20" cy="22" r="1.5" fill="#0b1c12" />
+      <circle cx="16" cy="16" r="6" fill="#0b1c12" />
+      <circle cx="16" cy="16" r="5.2" fill="#eef6ef" />
+      <polygon fill="#0b1c12" points="16,12.85 19,15.03 17.85,18.55 14.15,18.55 13,15.03" />
     </svg>
   );
 }
