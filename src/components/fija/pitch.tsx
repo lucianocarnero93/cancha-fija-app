@@ -60,16 +60,29 @@ export function Pitch({
               className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
               style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
             >
-              <span
-                className={cn(
-                  "grid place-items-center rounded-full border-2 font-bold shadow-md",
-                  dense ? "size-9 text-xs" : "size-11 text-xs",
-                  member
-                    ? "border-line bg-surface text-accent"
-                    : "border-dashed border-line/80 bg-bg/35 text-line",
-                )}
-              >
-                {member ? (member.number ?? initials(member.name)) : slot.label}
+              <span className="relative">
+                <span
+                  className={cn(
+                    "grid overflow-hidden place-items-center rounded-full border-2 font-bold shadow-md",
+                    dense ? "size-9 text-xs" : "size-11 text-xs",
+                    member
+                      ? "border-line bg-surface text-accent"
+                      : "border-dashed border-line/80 bg-bg/35 text-line",
+                  )}
+                >
+                  {member?.photo ? (
+                    <img src={member.photo} alt="" className="size-full object-cover" />
+                  ) : member ? (
+                    (member.number ?? initials(member.name))
+                  ) : (
+                    slot.label
+                  )}
+                </span>
+                {member?.photo && member.number != null ? (
+                  <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-bg text-[9px] text-fg">
+                    {member.number}
+                  </span>
+                ) : null}
               </span>
               <span className="mt-0.5 max-w-14 truncate text-center text-xs font-semibold text-line drop-shadow">
                 {member ? member.nick : editable ? "vacío" : ""}

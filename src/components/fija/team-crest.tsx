@@ -31,10 +31,14 @@ export function CrestPicker({
   src,
   name,
   onChange,
+  chooseLabel = "Elegir escudo o foto",
+  emptyHint = "Del celular. Se recorta en círculo.",
 }: {
   src?: string | null;
   name?: string;
   onChange: (crest: string | null) => void;
+  chooseLabel?: string;
+  emptyHint?: string;
 }) {
   const [error, setError] = useState("");
 
@@ -43,7 +47,7 @@ export function CrestPicker({
       <TeamCrest src={src} name={name} className="size-16 text-xl" />
       <div className="min-w-0 flex-1">
         <label className="flex h-12 cursor-pointer items-center justify-center rounded-lg bg-surface text-sm font-semibold">
-          Elegir escudo o foto
+          {chooseLabel}
           <input
             type="file"
             accept="image/*"
@@ -68,7 +72,7 @@ export function CrestPicker({
             Quitar foto
           </button>
         ) : (
-          <p className="mt-1 text-xs text-muted">Del celular. Se recorta en círculo.</p>
+          <p className="mt-1 text-xs text-muted">{emptyHint}</p>
         )}
         {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
       </div>

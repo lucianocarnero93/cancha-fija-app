@@ -99,7 +99,7 @@ export function RankRow({
   return (
     <li className="flex items-center gap-3 px-4 py-3">
       <span className="w-6 text-sm font-semibold tabular-nums text-subtle">{rank}</span>
-      <PlayerAvatar name={member.name} />
+      <PlayerAvatar name={member.name} photo={member.photo} />
       <span className="min-w-0 flex-1">
         <span className="block truncate font-medium">{member.nick}</span>
         <span className="text-xs text-muted">{member.name}</span>
@@ -116,7 +116,7 @@ export function CardRow({ member, row }: { member: Member | undefined; row: Play
   if (!member) return null;
   return (
     <li className="flex items-center gap-3 px-4 py-3">
-      <PlayerAvatar name={member.name} />
+      <PlayerAvatar name={member.name} photo={member.photo} />
       <span className="min-w-0 flex-1 truncate font-medium">{member.nick}</span>
       <span className="flex items-center gap-2 text-sm font-semibold tabular-nums">
         {row.yellow > 0 ? (
@@ -136,7 +136,24 @@ export function CardRow({ member, row }: { member: Member | undefined; row: Play
   );
 }
 
-export function PlayerAvatar({ name, accent }: { name: string; accent?: boolean }) {
+export function PlayerAvatar({
+  name,
+  accent,
+  photo,
+}: {
+  name: string;
+  accent?: boolean;
+  photo?: string | null;
+}) {
+  if (photo) {
+    return (
+      <img
+        src={photo}
+        alt=""
+        className={cn("size-11 rounded-full object-cover", accent && "ring-2 ring-accent")}
+      />
+    );
+  }
   return (
     <span
       className={cn(

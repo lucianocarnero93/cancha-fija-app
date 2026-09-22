@@ -29,6 +29,7 @@ export type Member = {
   nick: string;
   role: Role;
   number: number | null;
+  photo?: string | null;
 };
 
 export type Club = {

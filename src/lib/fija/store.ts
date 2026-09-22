@@ -79,6 +79,7 @@ type State = ReturnType<typeof createSeed> & {
   joinClub: (code: string) => Promise<boolean>;
   createClub: (name: string, crest?: string | null) => void;
   setProfile: (profile: { name: string; nick: string }) => void;
+  setMyPhoto: (photo: string | null) => void;
   syncFromCloud: () => Promise<void>;
   flushCloud: () => Promise<void>;
   resetDemo: () => void;
@@ -620,6 +621,18 @@ export const useFija = create<State>()(
             nick: sanitizeName(profile.nick) || "Jugador",
           },
         }),
+
+      // La persona actual pone su foto. Sirve para DT, ayudante y jugador.
+      setMyPhoto: (photo) => {
+        const personId = get().activeId;
+        const safe = photo && photo.startsWith("data:image/") && photo.length < 120_000 ? photo : null;
+        set({
+          members: get().members.map((person) =>
+            person.id === personId ? { ...person, photo: safe } : person,
+          ),
+        });
+        void get().flushCloud();
+      },
 
       // Sale del equipo. Si era el creador, el mando pasa a otra persona.
       // El equipo queda guardado para poder volver a entrar con el código.

@@ -29,6 +29,7 @@ function EquipoPage() {
   const creator = useIsCreator();
   const club = useFija((s) => s.club);
   const setClubCrest = useFija((s) => s.setClubCrest);
+  const setMyPhoto = useFija((s) => s.setMyPhoto);
   const members = useFija((s) => s.members);
   const sheets = useFija((s) => s.matchSheets);
   const record = teamRecord(sheets);
@@ -56,6 +57,15 @@ function EquipoPage() {
           <CrestPicker src={club?.crest} name={club?.name} onChange={setClubCrest} />
         </div>
       ) : null}
+      <div className="mt-4">
+        <CrestPicker
+          src={me.photo}
+          name={me.name}
+          onChange={setMyPhoto}
+          chooseLabel="Elegir mi foto"
+          emptyHint="Tu avatar. En la formación se ve en tu puesto."
+        />
+      </div>
 
       {staff || creator ? (
         <div className="mt-4">
@@ -110,7 +120,7 @@ function EquipoPage() {
         <ul className="mt-2 space-y-2">
           {coaches.map((m) => (
             <li key={m.id} className="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 shadow-card">
-              <PlayerAvatar name={m.name} accent={m.id === me.id} />
+              <PlayerAvatar name={m.name} photo={m.photo} accent={m.id === me.id} />
               <div>
                 <p className="font-medium">{m.name}</p>
                 <p className="text-xs text-muted">{ROLE_LABEL[m.role]}</p>
@@ -128,7 +138,7 @@ function EquipoPage() {
         <ul className="mt-2 divide-y divide-border overflow-hidden rounded-xl bg-surface shadow-card">
           {players.map((p) => (
             <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-              <PlayerAvatar name={p.name} accent={p.id === me.id} />
+              <PlayerAvatar name={p.name} photo={p.photo} accent={p.id === me.id} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
                   {p.number != null ? (
