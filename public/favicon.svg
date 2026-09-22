@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Cancha Fija">
-  <rect width="32" height="32" rx="7" fill="#070b08"/>
-  <path fill="#2EE56A" d="M16 2.6c-5.35 0-9.6 4.15-9.6 9.25 0 7.05 9.6 17.55 9.6 17.55s9.6-10.5 9.6-17.55c0-5.1-4.25-9.25-9.6-9.25z"/>
-  <g fill="none" stroke="#06210F" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9.6 12.35h12.8" stroke-width="2.15"/>
-    <circle cx="16" cy="12.35" r="4.05" stroke-width="2.15"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="Mi Vestuario App">
+  <rect width="16" height="16" rx="3.5" fill="#1f6b45"/>
+  <rect x="7" y="1" width="2" height="2" rx="1" fill="#fbf8f2"/>
+  <rect x="3" y="3" width="10" height="2" rx="1" fill="#8b5e3c"/>
+  <rect x="4" y="5" width="8" height="9" rx="1.2" fill="#fbf8f2"/>
+  <rect x="1.5" y="5" width="3.5" height="3" rx="0.6" fill="#fbf8f2"/>
+  <rect x="11" y="5" width="3.5" height="3" rx="0.6" fill="#fbf8f2"/>
+  <path fill="#1f6b45" d="M7 5 L8 6.4 L9 5 Z"/>
 </svg>

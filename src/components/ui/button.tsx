@@ -12,8 +12,8 @@ const buttonVariants = cva(
         secondary: "bg-surface-2 text-fg border border-border hover:bg-surface",
         ghost: "text-fg hover:bg-surface-2",
         outline: "border border-border bg-transparent text-fg hover:bg-surface-2",
-        danger: "bg-danger text-fg hover:opacity-90",
-        success: "bg-success text-fg hover:opacity-90",
+        danger: "bg-danger text-danger-fg hover:opacity-90",
+        success: "bg-success text-accent-fg hover:opacity-90",
       },
       size: {
         default: "h-11 px-4",

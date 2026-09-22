@@ -6,20 +6,16 @@ export function LogoMark({ className }: { className?: string }) {
       viewBox="0 0 32 32"
       className={cn("shrink-0", className)}
       role="img"
-      aria-label="Cancha Fija"
+      aria-label="Mi Vestuario App"
     >
-      <rect width="32" height="32" rx="8" className="fill-pitch-deep" />
+      <rect width="32" height="32" rx="7" className="fill-accent" />
+      <circle cx="16" cy="5.3" r="1.3" className="fill-surface" />
+      <rect x="9" y="7.2" width="14" height="2.4" rx="1.2" className="fill-wood" />
       <path
-        className="fill-accent"
-        d="M16 3.4c-4.85 0-8.8 3.75-8.8 8.45 0 6.35 8.8 16.4 8.8 16.4s8.8-10.05 8.8-16.4c0-4.7-3.95-8.45-8.8-8.45z"
+        className="fill-surface"
+        d="M6.8 11.8 12.6 9l1.5 2.8h3.8L19.4 9l5.8 2.8-2 3.3v10.1A1.7 1.7 0 0 1 21.5 26.9H10.5A1.7 1.7 0 0 1 8.8 25.2V15.1z"
       />
-      <g className="stroke-accent-fg" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="11.15" y="6.5" width="9.7" height="12.2" rx="0.9" strokeWidth="0.95" />
-        <line x1="11.15" y1="12.6" x2="20.85" y2="12.6" strokeWidth="0.85" />
-        <circle cx="16" cy="12.6" r="1.85" strokeWidth="0.85" />
-        <rect x="13.15" y="6.5" width="5.7" height="2.15" strokeWidth="0.75" />
-        <rect x="13.15" y="16.55" width="5.7" height="2.15" strokeWidth="0.75" />
-      </g>
+      <path className="fill-accent" d="M14.1 11.8 16 14.9 17.9 11.8z" />
     </svg>
   );
 }
@@ -38,8 +34,13 @@ export function BrandLockup({
         {kicker ? (
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">{kicker}</p>
         ) : null}
-        <p className={cn("truncate font-semibold leading-tight", compact ? "text-base" : "text-lg")}>
-          Cancha Fija
+        <p
+          className={cn(
+            "truncate font-display font-semibold leading-tight",
+            compact ? "text-base" : "text-lg",
+          )}
+        >
+          Mi Vestuario
         </p>
       </div>
     </div>

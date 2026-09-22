@@ -1,8 +1,8 @@
 {
-  "id": "/cancha-fija",
-  "name": "Cancha Fija",
-  "short_name": "Cancha Fija",
-  "description": "Organizá fútbol 5, 8, 9 y 11. Confirmá, alineá y chateá con el plantel.",
+  "id": "/mi-vestuario",
+  "name": "Mi Vestuario App",
+  "short_name": "Vestuario",
+  "description": "El vestuario de tu equipo amateur. Convocatorias, pizarra, stats y charla técnica.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -14,8 +14,8 @@
     "browser"
   ],
   "orientation": "portrait",
-  "background_color": "#070b08",
-  "theme_color": "#070b08",
+  "background_color": "#f3eee6",
+  "theme_color": "#f3eee6",
   "lang": "es-AR",
   "dir": "ltr",
   "categories": ["sports", "utilities"],
@@ -90,7 +90,7 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Inicio: próximo llamado y confirmación"
+      "label": "Inicio: convocatoria y confirmación"
     },
     {
       "src": "/screenshots/narrow-cancha.png",
@@ -104,7 +104,7 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Plantel y ceder mando"
+      "label": "Plantel y vestuario"
     },
     {
       "src": "/screenshots/wide-home.png",
@@ -125,7 +125,7 @@
     {
       "name": "Inicio",
       "short_name": "Inicio",
-      "description": "Próximo llamado y confirmación",
+      "description": "Próximo llamado y convocatoria",
       "url": "/",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
@@ -137,17 +137,17 @@
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Cancha",
-      "short_name": "Cancha",
+      "name": "Pizarra",
+      "short_name": "Pizarra",
       "description": "Pizarra táctica y alineación",
       "url": "/cancha",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Chat",
-      "short_name": "Chat",
-      "description": "Mensajes del plantel",
-      "url": "/chat",
+      "name": "Estadísticas",
+      "short_name": "Stats",
+      "description": "Goleadores, asistencias y rendimiento",
+      "url": "/stats",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
@@ -186,7 +186,7 @@
   },
   "protocol_handlers": [
     {
-      "protocol": "web+canchafija",
+      "protocol": "web+vestuario",
       "url": "/?protocol=%s"
     }
   ],
@@ -194,9 +194,9 @@
     {
       "name": "Próximo partido",
       "short_name": "Partido",
-      "description": "Próximo llamado de Cancha Fija con lugar y confirmados.",
-      "tag": "cancha-fija-next-match",
-      "template": "cancha-fija-next-match",
+      "description": "Próximo llamado de Mi Vestuario App con lugar y confirmados.",
+      "tag": "vestuario-next-match",
+      "template": "vestuario-next-match",
       "ms_ac_template": "/widgets/next-match-template.json",
       "data": "/widgets/next-match-data.json",
       "type": "application/json",

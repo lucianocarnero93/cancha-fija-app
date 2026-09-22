@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { formatTime } from "@/lib/fija/format";
-import { useFija, useMe } from "@/lib/fija/store";
+import { Chalkboard } from "@/components/fija/chalkboard";
+import { Segmented } from "@/components/fija/segmented";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { formatTime } from "@/lib/fija/format";
+import { useFija, useIsStaff, useMe } from "@/lib/fija/store";
 import { cn } from "@/lib/utils";
 
 type ShareSearch = {
@@ -21,6 +24,86 @@ export const Route = createFileRoute("/chat")({
 });
 
 function ChatPage() {
+  const [tab, setTab] = useState<"tecnica" | "grupo">("tecnica");
+  return (
+    <main className="flex min-h-[calc(100dvh-13rem)] flex-col px-4 py-5">
+      <h1 className="text-3xl font-semibold">Charla</h1>
+      <p className="text-sm text-muted">Pizarra del DT y chat del plantel.</p>
+      <Segmented
+        className="mt-4"
+        value={tab}
+        onChange={setTab}
+        options={[
+          { id: "tecnica", label: "Técnica" },
+          { id: "grupo", label: "Grupo" },
+        ]}
+      />
+      {tab === "tecnica" ? <CharlaWall /> : <GroupChat />}
+    </main>
+  );
+}
+
+function CharlaWall() {
+  const me = useMe();
+  const staff = useIsStaff();
+  const members = useFija((s) => s.members);
+  const charla = useFija((s) => s.charla);
+  const postCharla = useFija((s) => s.postCharla);
+  const [text, setText] = useState("");
+  const byId = new Map(members.map((m) => [m.id, m]));
+  const posts = [...charla].sort((a, b) => +new Date(a.at) - +new Date(b.at));
+
+  return (
+    <div className="mt-4 flex min-h-0 flex-1 flex-col">
+      <Chalkboard title="Muro del vestuario">
+        {posts.length === 0 ? (
+          <p>El DT todavía no dejó un comunicado.</p>
+        ) : (
+          <ul className="space-y-4">
+            {posts.map((post) => {
+              const author = byId.get(post.memberId);
+              return (
+                <li key={post.id}>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-chalk/70">
+                    {author?.nick ?? "Cuerpo técnico"} · {formatTime(post.at)}
+                  </p>
+                  <p className="mt-1 leading-relaxed">{post.text}</p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Chalkboard>
+      {staff ? (
+        <form
+          className="mt-4 space-y-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            postCharla(text);
+            setText("");
+          }}
+        >
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Comunicado para todo el plantel…"
+            className="min-h-24"
+          />
+          <Button type="submit" className="h-14 w-full" disabled={!text.trim()}>
+            Publicar y avisar
+          </Button>
+          <p className="text-xs text-muted">
+            Se dispara una alerta interna a {me.role === "dt" ? "todo el plantel" : "el resto"}.
+          </p>
+        </form>
+      ) : (
+        <p className="mt-3 text-xs text-muted">Solo el DT y el ayudante publican en la pizarra.</p>
+      )}
+    </div>
+  );
+}
+
+function GroupChat() {
   const me = useMe();
   const members = useFija((s) => s.members);
   const messages = useFija((s) => s.messages);
@@ -49,10 +132,8 @@ function ChatPage() {
   }, [hydrated, navigate, search.text, search.title, search.url, sendChat]);
 
   return (
-    <main className="flex min-h-[calc(100dvh-13rem)] flex-col px-4 py-5">
-      <h1 className="text-2xl font-semibold">Chat del equipo</h1>
-      <p className="text-sm text-muted">Mensajes rápidos. Nada de 80 hilos.</p>
-      <div className="mt-4 flex-1 space-y-3">
+    <div className="mt-4 flex min-h-0 flex-1 flex-col">
+      <div className="flex-1 space-y-3">
         {messages.map((m) => {
           const author = byId.get(m.memberId);
           const mine = m.memberId === me.id;
@@ -61,7 +142,7 @@ function ChatPage() {
               <div
                 className={cn(
                   "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
-                  mine ? "rounded-br-sm bg-accent text-accent-fg" : "rounded-bl-sm bg-surface text-fg",
+                  mine ? "rounded-br-sm bg-accent text-accent-fg" : "rounded-bl-sm bg-surface text-fg shadow-card",
                 )}
               >
                 {!mine ? (
@@ -95,6 +176,6 @@ function ChatPage() {
           Enviar
         </Button>
       </form>
-    </main>
+    </div>
   );
 }

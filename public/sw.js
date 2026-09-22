@@ -1,7 +1,7 @@
-/* Cancha Fija service worker
+/* Mi Vestuario App service worker
  * Offline shell, network intercept, push, background sync.
  */
-const CACHE = "cancha-fija-v1";
+const CACHE = "mi-vestuario-v1";
 const PRECACHE = [
   "/",
   "/offline.html",
@@ -51,18 +51,14 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (isViteInternal(url)) return;
-  if (url.pathname.startsWith("/__grok/")) return;
-  if (url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
     return;
   }
-
   event.respondWith(staleWhileRevalidate(request));
 });
 
@@ -78,7 +74,7 @@ async function networkFirst(request) {
     if (cached) return cached;
     const offline = await caches.match("/offline.html");
     if (offline) return offline;
-    return new Response("Cancha Fija está sin conexión.", {
+    return new Response("Mi Vestuario App está sin conexión.", {
       status: 503,
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
@@ -98,19 +94,19 @@ async function staleWhileRevalidate(request) {
 }
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "Cancha Fija", body: "Hay novedades del plantel." };
+  let payload = { title: "Mi Vestuario App", body: "Hay novedades del plantel." };
   try {
     if (event.data) payload = { ...payload, ...event.data.json() };
   } catch {
     if (event.data) payload.body = event.data.text();
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title || "Cancha Fija", {
+    self.registration.showNotification(payload.title || "Mi Vestuario App", {
       body: payload.body || "Hay novedades del plantel.",
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       lang: "es-AR",
-      tag: payload.tag || "cancha-fija-push",
+      tag: payload.tag || "vestuario-push",
       data: payload.data || { url: "/" },
     }),
   );
@@ -123,13 +119,18 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 self.addEventListener("sync", (event) => {
-  if (event.tag === "cancha-fija-sync" || event.tag === "cancha-fija-chat") {
+  if (
+    event.tag === "vestuario-sync" ||
+    event.tag === "vestuario-chat" ||
+    event.tag === "cancha-fija-sync" ||
+    event.tag === "cancha-fija-chat"
+  ) {
     event.waitUntil(flushPending(event.tag));
   }
 });
 
 self.addEventListener("periodicsync", (event) => {
-  if (event.tag === "cancha-fija-refresh") {
+  if (event.tag === "vestuario-refresh" || event.tag === "cancha-fija-refresh") {
     event.waitUntil(flushPending(event.tag));
   }
 });
@@ -137,7 +138,7 @@ self.addEventListener("periodicsync", (event) => {
 async function flushPending(tag) {
   const clientsList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
   for (const client of clientsList) {
-    client.postMessage({ type: "cancha-fija-sync", tag });
+    client.postMessage({ type: "vestuario-sync", tag });
   }
   return Promise.resolve();
 }
@@ -160,9 +161,9 @@ self.addEventListener("widgetclick", (event) => {
 });
 
 self.addEventListener("widgetinstall", (event) => {
-  event.waitUntil(self.registration.showNotification("Cancha Fija", {
+  event.waitUntil(self.registration.showNotification("Mi Vestuario App", {
     body: "El widget del próximo partido quedó en el panel.",
     icon: "/icon-192.png",
-    tag: "cancha-fija-widget",
+    tag: "vestuario-widget",
   }));
 });

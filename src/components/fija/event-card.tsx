@@ -10,11 +10,13 @@ export function EventCard({
   rsvps,
   children,
   className,
+  result,
 }: {
   event: ClubEvent;
   rsvps: Rsvp[];
   children?: ReactNode;
   className?: string;
+  result?: { gf: number; ga: number };
 }) {
   const voy = rsvps.filter((r) => r.status === "voy").length;
   const no = rsvps.filter((r) => r.status === "no").length;
@@ -24,11 +26,11 @@ export function EventCard({
   return (
     <article className={cn("rounded-xl bg-surface p-4 shadow-card", className)}>
       <div className="flex items-stretch gap-4">
-        <div className="grid w-16 shrink-0 place-items-center rounded-lg bg-pitch-deep py-2 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-line/80">
+        <div className="grid w-16 shrink-0 place-items-center rounded-lg bg-board py-2 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wide text-chalk/80">
             {formatDay(event.startsAt).split(",")[0]}
           </p>
-          <p className="text-xl font-semibold tabular-nums leading-none text-fg">
+          <p className="font-display text-xl font-semibold tabular-nums leading-none text-chalk">
             {formatTime(event.startsAt)}
           </p>
         </div>
@@ -36,7 +38,14 @@ export function EventCard({
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">
             {KIND_LABEL[event.kind]} · {MODALITY_LABEL[event.modality]}
           </p>
-          <h2 className="mt-1 text-lg font-semibold leading-tight">{event.title}</h2>
+          <h2 className="mt-1 flex items-center gap-2 text-lg font-semibold leading-tight">
+            <span className="min-w-0 truncate">{event.title}</span>
+            {result ? (
+              <span className="shrink-0 rounded-md bg-bg px-2 py-0.5 text-sm font-semibold tabular-nums text-accent">
+                {result.gf}–{result.ga}
+              </span>
+            ) : null}
+          </h2>
           <p className="mt-1 flex items-start gap-1 text-sm text-muted">
             <MapPin className="mt-0.5 size-3.5 shrink-0" />
             <span>{event.place}</span>

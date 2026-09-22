@@ -1,6 +1,17 @@
-import type { AppState, ClubEvent, Member, Rsvp } from "./types";
+import type {
+  AlertLog,
+  AppState,
+  CharlaPost,
+  ClubEvent,
+  Convocatoria,
+  InboxItem,
+  MatchSheet,
+  Member,
+  Rsvp,
+} from "./types";
 
 export const TEAM_NAME = "Los Fijos";
+export const APP_NAME = "Mi Vestuario App";
 
 const MEMBERS: Member[] = [
   { id: "dt", name: "Martín Díaz", nick: "Profe", role: "dt", number: null },
@@ -22,7 +33,51 @@ const MEMBERS: Member[] = [
   { id: "j15", name: "Federico Paz", nick: "Fede", role: "jugador", number: 18 },
 ];
 
+const F8: Record<string, string> = {
+  ARQ: "j2",
+  LI: "j8",
+  DF: "j5",
+  LD: "j11",
+  MI: "j6",
+  MC: "j3",
+  MD: "j4",
+  DC: "j1",
+};
+
 const EVENTS: ClubEvent[] = [
+  {
+    id: "ev-past-1",
+    kind: "partido",
+    title: "vs Villa del Parque",
+    place: "Predio Sur, cancha 1",
+    startsAt: "2026-09-06T20:00:00-03:00",
+    modality: "f8",
+    lineup: { ...F8, DC: "j1", MD: "j7" },
+    tactics: "Ya jugado. Joaco al área, Mía por derecha.",
+    lineupPublishedAt: "2026-09-05T19:00:00-03:00",
+  },
+  {
+    id: "ev-past-2",
+    kind: "partido",
+    title: "vs Los Pibes",
+    place: "Cancha 5 — Club Unión",
+    startsAt: "2026-09-13T21:00:00-03:00",
+    modality: "f8",
+    lineup: F8,
+    tactics: "Ya jugado. Empate justo.",
+    lineupPublishedAt: "2026-09-12T18:00:00-03:00",
+  },
+  {
+    id: "ev-past-3",
+    kind: "partido",
+    title: "vs Central Norte",
+    place: "Predio Norte",
+    startsAt: "2026-09-20T18:30:00-03:00",
+    modality: "f8",
+    lineup: F8,
+    tactics: "Ya jugado. Nos ganaron de contra.",
+    lineupPublishedAt: "2026-09-19T17:00:00-03:00",
+  },
   {
     id: "ev-reunion",
     kind: "reunion",
@@ -32,6 +87,7 @@ const EVENTS: ClubEvent[] = [
     modality: "f5",
     lineup: {},
     tactics: "Confirmamos horarios de la semana y quién trae pelotas.",
+    lineupPublishedAt: null,
   },
   {
     id: "ev-entreno",
@@ -42,6 +98,7 @@ const EVENTS: ClubEvent[] = [
     modality: "f5",
     lineup: { ARQ: "j2", LI: "j5", LD: "j11", EI: "j4", ED: "j1" },
     tactics: "Ritmo alto. Si llegás tarde, entras de a poco. Hidratate.",
+    lineupPublishedAt: "2026-09-24T12:00:00-03:00",
   },
   {
     id: "ev-partido",
@@ -50,18 +107,10 @@ const EVENTS: ClubEvent[] = [
     place: "Predio Sur, cancha 2",
     startsAt: "2026-09-26T20:30:00-03:00",
     modality: "f8",
-    lineup: {
-      ARQ: "j2",
-      LI: "j8",
-      DF: "j5",
-      LD: "j11",
-      MI: "j6",
-      MC: "j3",
-      MD: "j4",
-      DC: "j1",
-    },
+    lineup: F8,
     tactics:
       "Presión en la salida de ellos. Joaco se queda al área. Si empatamos, no abrir el fondo.",
+    lineupPublishedAt: "2026-09-22T10:00:00-03:00",
   },
   {
     id: "ev-f11",
@@ -84,6 +133,67 @@ const EVENTS: ClubEvent[] = [
       ED: "j7",
     },
     tactics: "4-3-3. Mía y Valen abren. Joaco no baje a recibir: que le llegue de frente.",
+    lineupPublishedAt: null,
+  },
+];
+
+const MATCH_SHEETS: MatchSheet[] = [
+  {
+    eventId: "ev-past-1",
+    opponent: "Villa del Parque",
+    goalsFor: 3,
+    goalsAgainst: 1,
+    notes: "Primer tiempo 2-0. Ellos descontaron de penal.",
+    recordedAt: "2026-09-06T22:10:00-03:00",
+    players: [
+      { memberId: "j1", goals: 2, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j7", goals: 1, assists: 1, yellow: 0, red: 0 },
+      { memberId: "j3", goals: 0, assists: 1, yellow: 0, red: 0 },
+      { memberId: "j4", goals: 0, assists: 1, yellow: 1, red: 0 },
+      { memberId: "j2", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j5", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j6", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j8", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j11", goals: 0, assists: 0, yellow: 0, red: 0 },
+    ],
+  },
+  {
+    eventId: "ev-past-2",
+    opponent: "Los Pibes",
+    goalsFor: 2,
+    goalsAgainst: 2,
+    notes: "Empate con gol de Valen a los 38.",
+    recordedAt: "2026-09-13T23:05:00-03:00",
+    players: [
+      { memberId: "j1", goals: 1, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j9", goals: 1, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j6", goals: 0, assists: 1, yellow: 0, red: 0 },
+      { memberId: "j3", goals: 0, assists: 1, yellow: 0, red: 0 },
+      { memberId: "j10", goals: 0, assists: 0, yellow: 1, red: 0 },
+      { memberId: "j5", goals: 0, assists: 0, yellow: 1, red: 0 },
+      { memberId: "j2", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j4", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j8", goals: 0, assists: 0, yellow: 0, red: 0 },
+    ],
+  },
+  {
+    eventId: "ev-past-3",
+    opponent: "Central Norte",
+    goalsFor: 0,
+    goalsAgainst: 1,
+    notes: "Nos ganaron de contra. Lucho se fue expulsado.",
+    recordedAt: "2026-09-20T20:15:00-03:00",
+    players: [
+      { memberId: "j13", goals: 0, assists: 0, yellow: 0, red: 1 },
+      { memberId: "j8", goals: 0, assists: 0, yellow: 1, red: 0 },
+      { memberId: "j1", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j7", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j2", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j5", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j3", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j6", goals: 0, assists: 0, yellow: 0, red: 0 },
+      { memberId: "j11", goals: 0, assists: 0, yellow: 0, red: 0 },
+    ],
   },
 ];
 
@@ -93,7 +203,9 @@ function seedRsvps(): Rsvp[] {
   for (const event of EVENTS) {
     players.forEach((p, i) => {
       let status: Rsvp["status"] = "pendiente";
-      if (event.id === "ev-partido") {
+      if (event.id.startsWith("ev-past-")) {
+        status = i === 14 ? "no" : "voy";
+      } else if (event.id === "ev-partido") {
         if (i === 8 || i === 9) status = "no";
         else if (i === 6 || i === 7) status = "pendiente";
         else status = "voy";
@@ -112,16 +224,109 @@ function seedRsvps(): Rsvp[] {
   return out;
 }
 
-export function createSeed(): Omit<AppState, "hydrated"> {
+function seedCallups(): {
+  convocatorias: Convocatoria[];
+  inbox: InboxItem[];
+  alertLog: AlertLog[];
+  charla: CharlaPost[];
+} {
+  const convAt = new Date(Date.now() - 50 * 3_600_000).toISOString();
+  const firstAt = new Date(Date.now() - 26 * 3_600_000).toISOString();
+  const secondAt = new Date(Date.now() - 2 * 3_600_000).toISOString();
+  const formAt = "2026-09-22T10:00:00-03:00";
   return {
+    convocatorias: [{ eventId: "ev-partido", sentAt: convAt, sentBy: "dt" }],
+    alertLog: [
+      { id: "al-1", eventId: "ev-partido", kind: "first", at: firstAt },
+      { id: "al-2", eventId: "ev-partido", kind: "second", at: secondAt },
+    ],
+    inbox: [
+      {
+        id: "in-call",
+        kind: "convocatoria",
+        title: "Convocatoria: vs Los del Bajo",
+        body: "Sábado 20:30 en Predio Sur. Confirmá si vas.",
+        eventId: "ev-partido",
+        audience: "all",
+        at: convAt,
+        readBy: ["dt", "ayu"],
+      },
+      {
+        id: "in-r1",
+        kind: "recordatorio",
+        title: "Segunda alerta de convocatoria",
+        body: "Pasaron 24 h y todavía no confirmaste vs Los del Bajo.",
+        eventId: "ev-partido",
+        audience: "pending",
+        at: firstAt,
+        readBy: [],
+      },
+      {
+        id: "in-wa",
+        kind: "recordatorio",
+        title: "Pendientes para WhatsApp",
+        body: "Mía y Tomi llevan más de 48 h sin responder. Mandales el reclamo.",
+        eventId: "ev-partido",
+        audience: "staff",
+        at: secondAt,
+        readBy: [],
+      },
+      {
+        id: "in-form",
+        kind: "formacion",
+        title: "Formación publicada",
+        body: "El DT colgó la pizarra para vs Los del Bajo.",
+        eventId: "ev-partido",
+        audience: "all",
+        at: formAt,
+        readBy: ["dt", "ayu"],
+      },
+      {
+        id: "in-charla",
+        kind: "charla",
+        title: "Charla técnica",
+        body: "Sábado 20:30 contra Los del Bajo. El domingo es F11 vs Racing. Confirmen hoy.",
+        audience: "all",
+        at: "2026-09-21T11:20:00-03:00",
+        readBy: ["dt"],
+      },
+    ],
+    charla: [
+      {
+        id: "ch-1",
+        memberId: "dt",
+        text: "Sábado 20:30 contra Los del Bajo. El domingo es F11 vs Racing. Confirmen hoy, no mañana.",
+        at: "2026-09-21T11:20:00-03:00",
+      },
+      {
+        id: "ch-2",
+        memberId: "ayu",
+        text: "Llego 20:10 con las pecheras. El que pueda, una botella extra.",
+        at: "2026-09-21T18:04:00-03:00",
+      },
+    ],
+  };
+}
+
+export function createSeed(): Omit<AppState, "hydrated"> {
+  const callups = seedCallups();
+  return {
+    club: { id: "club-1", name: TEAM_NAME, createdBy: "dt", inviteCode: "FIJOS" },
     members: MEMBERS,
     events: EVENTS,
     rsvps: seedRsvps(),
+    matchSheets: MATCH_SHEETS,
+    invites: [],
+    convocatorias: callups.convocatorias,
+    inbox: callups.inbox,
+    alertLog: callups.alertLog,
+    reminderPolicy: { firstHours: 24, secondHours: 48 },
+    charla: callups.charla,
     messages: [
       {
         id: "m1",
         memberId: "dt",
-        text: "Sábado 20:30 contra Los del Bajo. El domingo es F11 vs Racing. Confirmen hoy, no mañana.",
+        text: "Sábado 20:30 contra Los del Bajo. El domingo es F11 vs Racing. Confirmá en la app, no en el grupo.",
         at: "2026-09-21T11:20:00-03:00",
       },
       {

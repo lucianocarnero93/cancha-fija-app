@@ -65,7 +65,7 @@ export function Pitch({
                   "grid place-items-center rounded-full border-2 font-bold shadow-md",
                   dense ? "size-9 text-xs" : "size-11 text-xs",
                   member
-                    ? "border-line bg-fg text-accent-fg"
+                    ? "border-line bg-surface text-accent"
                     : "border-dashed border-line/80 bg-bg/35 text-line",
                 )}
               >

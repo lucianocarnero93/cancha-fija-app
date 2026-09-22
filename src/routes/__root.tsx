@@ -9,15 +9,15 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
-      { title: "Cancha Fija" },
-      { name: "theme-color", content: "#070b08" },
+      { title: "Mi Vestuario App" },
+      { name: "theme-color", content: "#f3eee6" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Cancha Fija" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Vestuario" },
       {
         name: "description",
-        content: "Organización de fútbol 5, 8, 9 y 11. Confirmá, alineá, chateá. Sin el grupo de WhatsApp.",
+        content: "El vestuario de tu equipo amateur. Convocatorias, pizarra, stats y charla técnica.",
       },
     ],
     links: [
@@ -29,7 +29,7 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap",
       },
     ],
   }),

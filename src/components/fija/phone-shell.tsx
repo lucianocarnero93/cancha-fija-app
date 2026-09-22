@@ -1,11 +1,11 @@
+import { CalendarDays, ChartColumn, House, MessageCircle, Shield, Users } from "lucide-react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, House, MessageCircle, Shield, Users } from "lucide-react";
 import { useEffect } from "react";
 import { ROLE_LABEL, ROLE_TAB } from "@/lib/fija/format";
-import { TEAM_NAME } from "@/lib/fija/seed";
 import { useFija, useMe } from "@/lib/fija/store";
 import type { Role } from "@/lib/fija/types";
 import { cn } from "@/lib/utils";
+import { InboxBell } from "./inbox-bell";
 import { BrandLockup } from "./logo";
 import { PushBanner } from "./push-banner";
 import { PwaRegister } from "./pwa-register";
@@ -14,24 +14,30 @@ import { Segmented } from "./segmented";
 const NAV = [
   { to: "/", label: "Inicio", icon: House, exact: true },
   { to: "/agenda", label: "Agenda", icon: CalendarDays, exact: false },
-  { to: "/cancha", label: "Cancha", icon: Shield, exact: false },
-  { to: "/chat", label: "Chat", icon: MessageCircle, exact: false },
+  { to: "/cancha", label: "Pizarra", icon: Shield, exact: false },
+  { to: "/stats", label: "Stats", icon: ChartColumn, exact: false },
+  { to: "/chat", label: "Charla", icon: MessageCircle, exact: false },
   { to: "/equipo", label: "Equipo", icon: Users, exact: false },
 ] as const;
 
 export function PhoneShell() {
   const setHydrated = useFija((s) => s.setHydrated);
+  const tickAlerts = useFija((s) => s.tickAlerts);
 
   useEffect(() => {
     void useFija.persist.rehydrate();
     setHydrated();
-  }, [setHydrated]);
+    tickAlerts();
+    const id = window.setInterval(() => tickAlerts(), 30_000);
+    return () => window.clearInterval(id);
+  }, [setHydrated, tickAlerts]);
 
   return (
     <div className="min-h-dvh bg-void text-fg">
       <div className="app-titlebar" aria-hidden="true" />
       <PwaRegister />
-      <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col bg-bg shadow-[0_0_80px_rgba(46,229,106,0.08)]">
+      <div className="locker-shell mx-auto flex min-h-dvh w-full max-w-phone flex-col shadow-card">
+        <div className="wood-strip" aria-hidden="true" />
         <TestBar />
         <PushBanner />
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-2">
@@ -49,15 +55,19 @@ function TestBar() {
   const viewAsRole = useFija((s) => s.viewAsRole);
   const setActive = useFija((s) => s.setActive);
   const resetDemo = useFija((s) => s.resetDemo);
+  const club = useFija((s) => s.club);
   const players = members.filter((m) => m.role === "jugador");
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/95 px-3 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <BrandLockup kicker="Modo prueba" />
-        <button type="button" onClick={resetDemo} className="h-11 px-2 text-xs text-muted underline">
-          Reset
-        </button>
+        <div className="flex items-center">
+          <InboxBell />
+          <button type="button" onClick={resetDemo} className="h-11 px-2 text-xs text-muted underline">
+            Reset
+          </button>
+        </div>
       </div>
       <Segmented
         className="mt-3"
@@ -83,7 +93,7 @@ function TestBar() {
         </select>
       ) : (
         <p className="mt-2 text-xs text-muted">
-          {TEAM_NAME} · {me.nick} · {ROLE_LABEL[me.role]}
+          {club.name} · {me.nick} · {ROLE_LABEL[me.role]}
         </p>
       )}
     </header>
@@ -94,7 +104,7 @@ function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav className="sticky bottom-0 z-30 border-t border-border bg-bg/95 pb-[env(safe-area-inset-bottom)]">
-      <ul className="grid grid-cols-5">
+      <ul className="grid grid-cols-6">
         {NAV.map((item) => {
           const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
           const Icon = item.icon;
@@ -102,6 +112,13 @@ function BottomNav() {
             <li key={item.to}>
               <Link
                 to={item.to}
+                search={
+                  item.to === "/stats"
+                    ? { partido: undefined }
+                    : item.to === "/chat"
+                      ? { title: undefined, text: undefined, url: undefined }
+                      : undefined
+                }
                 className={cn(
                   "flex h-16 flex-col items-center justify-center gap-1 text-xs font-medium",
                   active ? "text-accent" : "text-muted",

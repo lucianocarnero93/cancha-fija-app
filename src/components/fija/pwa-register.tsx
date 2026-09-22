@@ -7,7 +7,7 @@ type LaunchParams = {
   targetURL?: string;
   files?: readonly LaunchFile[];
 };
-type AppPath = "/" | "/agenda" | "/cancha" | "/chat" | "/equipo";
+type AppPath = "/" | "/agenda" | "/cancha" | "/chat" | "/equipo" | "/stats";
 
 declare global {
   interface Window {
@@ -27,12 +27,23 @@ const PROTOCOL_MAP: Record<string, AppPath> = {
   inicio: "/",
   agenda: "/agenda",
   cancha: "/cancha",
+  pizarra: "/cancha",
   chat: "/chat",
+  charla: "/chat",
   equipo: "/equipo",
+  stats: "/stats",
+  estadisticas: "/stats",
 };
 
 function isAppPath(path: string): path is AppPath {
-  return path === "/" || path === "/agenda" || path === "/cancha" || path === "/chat" || path === "/equipo";
+  return (
+    path === "/" ||
+    path === "/agenda" ||
+    path === "/cancha" ||
+    path === "/chat" ||
+    path === "/equipo" ||
+    path === "/stats"
+  );
 }
 
 export function PwaRegister() {
@@ -55,12 +66,12 @@ export function PwaRegister() {
           /* ignore */
         }
         try {
-          await registration.sync?.register("cancha-fija-sync");
+          await registration.sync?.register("vestuario-sync");
         } catch {
           /* SyncManager not available */
         }
         try {
-          await registration.periodicSync?.register("cancha-fija-refresh", {
+          await registration.periodicSync?.register("vestuario-refresh", {
             minInterval: 60 * 60 * 1000,
           });
         } catch {
@@ -122,7 +133,7 @@ export function PwaRegister() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type !== "cancha-fija-sync") return;
+      if (event.data?.type !== "vestuario-sync" && event.data?.type !== "cancha-fija-sync") return;
       void router.invalidate();
     };
     navigator.serviceWorker?.addEventListener("message", onMessage);
@@ -132,7 +143,7 @@ export function PwaRegister() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onOnline = () => {
-      void navigator.serviceWorker?.ready.then((reg) => reg.sync?.register("cancha-fija-sync"));
+      void navigator.serviceWorker?.ready.then((reg) => reg.sync?.register("vestuario-sync"));
     };
     window.addEventListener("online", onOnline);
     return () => window.removeEventListener("online", onOnline);
@@ -143,7 +154,9 @@ export function PwaRegister() {
 
 function pathFromProtocol(raw: string): AppPath {
   try {
-    const cleaned = raw.replace(/^web\+canchafija:\/\//i, "https://cancha.fija/");
+    const cleaned = raw
+      .replace(/^web\+vestuario:\/\//i, "https://mi.vestuario/")
+      .replace(/^web\+canchafija:\/\//i, "https://cancha.fija/");
     const url = new URL(cleaned);
     const host = url.hostname.replace(/^www\./, "");
     const first = (url.pathname.replace(/^\//, "") || host || "").split("/")[0] ?? "";
@@ -152,7 +165,7 @@ function pathFromProtocol(raw: string): AppPath {
     if (PROTOCOL_MAP[host]) return PROTOCOL_MAP[host];
     if (isAppPath(url.pathname)) return url.pathname;
   } catch {
-    const fallback = raw.replace(/^web\+canchafija:\/\/*/i, "").split("?")[0] ?? "";
+    const fallback = raw.replace(/^web\+(vestuario|canchafija):\/\/*/i, "").split("?")[0] ?? "";
     if (PROTOCOL_MAP[fallback]) return PROTOCOL_MAP[fallback];
   }
   return "/";

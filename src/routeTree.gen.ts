@@ -14,6 +14,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as CanchaRouteImport } from './routes/cancha'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as EquipoRouteImport } from './routes/equipo'
+import { Route as StatsRouteImport } from './routes/stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const EquipoRoute = EquipoRouteImport.update({
   path: '/equipo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,14 @@ export interface FileRoutesById {
   '/cancha': typeof CanchaRoute
   '/chat': typeof ChatRoute
   '/equipo': typeof EquipoRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo'
+  fullPaths: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo'
-  id: '__root__' | '/' | '/agenda' | '/cancha' | '/chat' | '/equipo'
+  to: '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
+  id: '__root__' | '/' | '/agenda' | '/cancha' | '/chat' | '/equipo' | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +86,7 @@ export interface RootRouteChildren {
   CanchaRoute: typeof CanchaRoute
   ChatRoute: typeof ChatRoute
   EquipoRoute: typeof EquipoRoute
+  StatsRoute: typeof StatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +142,7 @@ const rootRouteChildren: RootRouteChildren = {
   CanchaRoute: CanchaRoute,
   ChatRoute: ChatRoute,
   EquipoRoute: EquipoRoute,
+  StatsRoute: StatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
